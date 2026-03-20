@@ -9,4 +9,4 @@ Skład grupy:
 - Mateusz Krupa
 - Kacper Porada
 
-W repozytorium znajdują się wszystkie pliki projektu. Zostały podzielone na foldery `backend` i `frontend`.
+W repozytorium znajdują się wszystkie pliki projektu. Zostały podzielone na foldery [`backend`](./backend) i [`frontend`](./frontend), ponieważ są to oddzielne moduły projektu.
