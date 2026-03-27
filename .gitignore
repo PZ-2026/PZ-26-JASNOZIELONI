@@ -1,0 +1,84 @@
+# Gradle files
+.gradle/
+build/
+**/build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Logs
+*.log
+
+# Android build outputs
+*.apk
+*.ap_
+*.aab
+output-metadata.json
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# NDK / C++
+.externalNativeBuild/
+.cxx/
+
+# Captures / profiling
+captures/
+*.hprof
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services / Firebase
+google-services.json
+
+# Secrets / env
+*.env
+.env.*
+keystore.properties
+
+# Kotlin / Java temp
+*.class
+
+# Misc
+*.orig
+*.rej
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
