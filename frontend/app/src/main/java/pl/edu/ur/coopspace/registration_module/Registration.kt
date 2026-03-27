@@ -22,8 +22,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Usunięto zdefiniowane tu na sztywno kolory. Będziemy korzystać z MaterialTheme.
-
 enum class UserRole { ADMINISTRATOR, MIESZKANIEC, KONSERWATOR }
 
 data class User(
@@ -33,14 +31,15 @@ data class User(
     val role: UserRole,
     val phone: String,
     val email: String,
-    val address: String
+    val address: String,
+    val password: String
 )
 
 val pseudoDatabase = listOf(
-    User(1, "Anna", "Nowak", UserRole.ADMINISTRATOR, "+48 123 456 789", "anna.nowak@coopspace.pl", "ul. Spółdzielcza 1, Biuro 10"),
-    User(2, "Jan", "Kowalski", UserRole.ADMINISTRATOR, "+48 987 654 321", "jan.kowalski@coopspace.pl", "ul. Spółdzielcza 1, Biuro 11"),
-    User(3, "Mietek", "Kozidrak", UserRole.MIESZKANIEC, "+48 111 222 333", "mietek@kozidrak.pl", "ul. Polna 4/12"),
-    User(4, "Zbigniew", "Złota-Rączka", UserRole.KONSERWATOR, "+48 555 444 333", "usterki@coopspace.pl", "Warsztat bud. B")
+    User(1, "Anna", "Nowak", UserRole.ADMINISTRATOR, "+48 123 456 789", "anna.nowak@coopspace.pl", "ul. Spółdzielcza 1, Biuro 10", "123"),
+    User(2, "Jan", "Kowalski", UserRole.ADMINISTRATOR, "+48 987 654 321", "jan.kowalski@coopspace.pl", "ul. Spółdzielcza 1, Biuro 11", "123"),
+    User(3, "Mietek", "Kozidrak", UserRole.MIESZKANIEC, "+48 111 222 333", "mietek@kozidrak.pl", "ul. Polna 4/12", "123"),
+    User(4, "Zbigniew", "Zlota-Raczka", UserRole.KONSERWATOR, "+48 555 444 333", "usterki@coopspace.pl", "Warsztat bud. B", "123")
 )
 
 @Composable
@@ -55,7 +54,7 @@ fun HeaderComponent() {
             text = "CoopSpace",
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary // Bierzemy kolor z motywu
+            color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -71,11 +70,14 @@ fun HeaderComponent() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onNavigateToAdmins: () -> Unit
+    onNavigateToAdmins: () -> Unit,
+    onLoginSuccess: (UserRole) -> Unit
 ) {
-    var login by remember { mutableStateOf("Mietek@Kozidrak") }
-    var password by remember { mutableStateOf("****") }
+    // Domyślnie ustawiamy maila admina dla łatwego testowania
+    var login by remember { mutableStateOf("anna.nowak@coopspace.pl") }
+    var password by remember { mutableStateOf("123") }
     var rememberMe by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -89,8 +91,12 @@ fun LoginScreen(
 
         TextField(
             value = login,
-            onValueChange = { login = it },
-            label = { Text("Login") },
+            onValueChange = { 
+                login = it
+                errorMessage = null // Czyścimy błąd przy pisaniu
+            },
+            label = { Text("Email / Login") },
+            isError = errorMessage != null,
             trailingIcon = {
                 Icon(Icons.Default.Clear, contentDescription = "Wyczyść", modifier = Modifier.clickable { login = "" })
             },
@@ -104,7 +110,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
         Text(
-            text = "Podaj login otrzymany od administratora spółdzielni",
+            text = "Podaj adres e-mail użyty podczas rejestracji",
             fontSize = 10.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
@@ -114,8 +120,12 @@ fun LoginScreen(
 
         TextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { 
+                password = it
+                errorMessage = null
+            },
             label = { Text("Hasło") },
+            isError = errorMessage != null,
             trailingIcon = {
                 Icon(Icons.Default.Clear, contentDescription = "Wyczyść", modifier = Modifier.clickable { password = "" })
             },
@@ -128,6 +138,15 @@ fun LoginScreen(
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier.fillMaxWidth()
         )
+
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage!!,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -155,7 +174,19 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { /* TODO: Akcja logowania */ },
+            onClick = {
+                // Logika sprawdzania w pseudo-bazie
+                val user = pseudoDatabase.find { 
+                    (it.email.equals(login, ignoreCase = true) || "${it.firstName}@${it.lastName}".equals(login, ignoreCase = true)) 
+                    && it.password == password
+                }
+
+                if (user != null) {
+                    onLoginSuccess(user.role)
+                } else {
+                    errorMessage = "Błędny login lub hasło"
+                }
+            },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             shape = RoundedCornerShape(50)
         ) {
