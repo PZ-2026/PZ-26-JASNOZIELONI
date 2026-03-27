@@ -204,7 +204,7 @@ fun LoginScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Jeśli jesteś nowym mieszkańcem spółdzielni i nie masz jeszcze konta skontaktuj się z administratorem lub kliknij tutaj",
+                text = "Jeśli jesteś nowym mieszkańcem spółdzielni i nie masz jeszcze konta kliknij tutaj by skontaktować się z administratorem",
                 fontSize = 12.sp,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Medium,
