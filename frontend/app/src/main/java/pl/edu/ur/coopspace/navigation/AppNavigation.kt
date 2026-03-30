@@ -305,7 +305,7 @@ fun CoopSpaceApp() {
                     // Tu w przyszłości przejdziemy do szczegółów
                 },
                 onAddNewTicketClick = {
-                    // Tu w przyszłości otworzymy formularz nowego zgłoszenia
+                    navController.navigate("resident_new_ticket")
                 },
                 onLogout = {
                     navController.navigate("login") {
@@ -315,15 +315,36 @@ fun CoopSpaceApp() {
             )
         }
 
+        composable("resident_new_ticket") {
+            pl.edu.ur.coopspace.ticket_module.ResidentNewTicketScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
         composable("service_tickets") {
             ServiceTicketsScreen(
                 onTicketClick = { ticketId ->
-                    // Szczegóły dla konserwatora
+                    navController.navigate("service_ticket_details/$ticketId")
                 },
                 onLogout = {
                     navController.navigate("login") {
                         popUpTo("service_tickets") { inclusive = true }
                     }
+                }
+            )
+        }
+
+        composable(
+            "service_ticket_details/{ticketId}",
+            arguments = listOf(androidx.navigation.navArgument("ticketId") { type = androidx.navigation.NavType.IntType })
+        ) { backStackEntry ->
+            val ticketId = backStackEntry.arguments?.getInt("ticketId") ?: 1
+            pl.edu.ur.coopspace.ticket_module.ServiceTicketDetailsScreen(
+                ticketId = ticketId.toString(),
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }

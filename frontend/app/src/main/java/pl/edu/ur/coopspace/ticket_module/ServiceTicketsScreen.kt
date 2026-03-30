@@ -38,17 +38,6 @@ fun ServiceTicketsScreen(
                 )
             )
         },
-        // Konserwator może nie potrzebować FAB do dodawania, ale możemy mu dać ikonę warsztatu
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* TODO: Filtrowanie lub statusy */ },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(Icons.Default.Build, contentDescription = "Narzędzia")
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
