@@ -1,0 +1,217 @@
+package pl.edu.ur.coopspace.administration_module
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+enum class InProgressReportStatus { ASSIGNED, UNASSIGNED }
+
+data class ReportInProgressItem(
+    val title: String,
+    val status: InProgressReportStatus
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AdminReportsInProgressScreen(
+    onNavigateBack: () -> Unit,
+    onLogout: () -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+
+    val mockReports = listOf(
+        ReportInProgressItem("Typ Zgłoszenia | Adres", InProgressReportStatus.ASSIGNED),
+        ReportInProgressItem("Typ Zgłoszenia | Adres", InProgressReportStatus.ASSIGNED),
+        ReportInProgressItem("Typ Zgłoszenia | Adres", InProgressReportStatus.UNASSIGNED),
+        ReportInProgressItem("Typ Zgłoszenia | Adres", InProgressReportStatus.UNASSIGNED),
+        ReportInProgressItem("Typ Zgłoszenia | Adres", InProgressReportStatus.UNASSIGNED),
+        ReportInProgressItem("Typ Zgłoszenia | Adres", InProgressReportStatus.UNASSIGNED)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp)
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Nagłówek
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Menu",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clickable { /* TODO */ }
+                )
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                
+                Text(
+                    text = "Zgłoszenia",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    onClick = onLogout,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    shape = RoundedCornerShape(50),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+                    modifier = Modifier.height(36.dp)
+                ) {
+                    Text(text = "Wyloguj", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(50)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Build,
+                        contentDescription = "Profil",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Pole wyszukiwania
+        TextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            placeholder = { Text("Wyszukaj mieszkanca", color = Color.Gray) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Sort/Filter",
+                    tint = Color.DarkGray
+                )
+            },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Szukaj",
+                    tint = Color.DarkGray
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(50),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFFEBE6F3),
+                unfocusedContainerColor = Color(0xFFEBE6F3),
+                disabledContainerColor = Color(0xFFEBE6F3),
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+            ),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Lista zgłoszeń w jednej karcie
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(2.dp),
+            border = BorderStroke(1.dp, Color.Black),
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+        ) {
+            Column {
+                mockReports.forEachIndexed { index, report ->
+                    val bgColor = if (report.status == InProgressReportStatus.ASSIGNED) {
+                        Color(0xFF9ACDE7)
+                    } else {
+                        Color(0xFFDFB45E)
+                    }
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(bgColor)
+                            .clickable { /* TODO */ }
+                            .padding(horizontal = 24.dp, vertical = 18.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = report.title,
+                            fontSize = 15.sp,
+                            color = Color.Black
+                        )
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Szczegóły",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowRight,
+                                contentDescription = "Więcej",
+                                tint = Color.Black,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                    
+                    if (index < mockReports.size - 1) {
+                        HorizontalDivider(
+                            modifier = Modifier.fillMaxWidth(),
+                            thickness = 1.dp,
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Przycisk Cofnij
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+            Button(
+                onClick = onNavigateBack,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                shape = RoundedCornerShape(50),
+                contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
+            ) {
+                Text(text = "Cofnij", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}

@@ -31,15 +31,20 @@ data class AdminMenuItem(
 
 @Composable
 fun AdminHomeScreen(
-    onLogout: () -> Unit // Callback do wylogowania
+    onLogout: () -> Unit, // Callback do wylogowania
+    onNavigateToAnnouncements: () -> Unit = {}, // Callback nawigacji do ogłoszeń
+    onNavigateToUsers: () -> Unit = {}, // Callback nawigacji do użytkowników
+    onNavigateToReports: () -> Unit = {}, // Callback nawigacji do zgłoszeń
+    onNavigateToPaymentSettings: () -> Unit = {}, // Callback nawigacji do opłat
+    onNavigateToRaports: () -> Unit = {} // Callback nawigacji do raportów
 ) {
     // 2. Definiujemy listę elementów menu na podstawie makiety
     val menuItems = listOf(
-        AdminMenuItem("Tablica ogłoszeń", Icons.Default.Notifications) { /* TODO */ },
-        AdminMenuItem("Zarządzaj użytkownikami", Icons.Default.Face) { /* TODO */ },
-        AdminMenuItem("Zarządzaj zgłoszeniami", Icons.Default.Build) { /* TODO */ },
-        AdminMenuItem("Ustawienia opłat", Icons.Default.PriceCheck) { /* TODO */ },
-        AdminMenuItem("Raporty", Icons.Default.AssignmentTurnedIn) { /* TODO */ },
+        AdminMenuItem("Tablica ogłoszeń", Icons.Default.Notifications) { onNavigateToAnnouncements() },
+        AdminMenuItem("Zarządzaj użytkownikami", Icons.Default.Face) { onNavigateToUsers() },
+        AdminMenuItem("Zarządzaj zgłoszeniami", Icons.Default.Build) { onNavigateToReports() },
+        AdminMenuItem("Ustawienia opłat", Icons.Default.PriceCheck) { onNavigateToPaymentSettings() },
+        AdminMenuItem("Raporty", Icons.Default.AssignmentTurnedIn) { onNavigateToRaports() },
     )
 
     Column(
