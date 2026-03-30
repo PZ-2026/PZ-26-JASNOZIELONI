@@ -17,6 +17,8 @@ import pl.edu.ur.coopspace.administration_module.AdminFinishedReportsScreen
 import pl.edu.ur.coopspace.administration_module.AdminReportsInProgressScreen
 import pl.edu.ur.coopspace.administration_module.AdminPaymentSettingsScreen
 import pl.edu.ur.coopspace.administration_module.AdminRaportsScreen
+import pl.edu.ur.coopspace.administration_module.AdminRaportOfServiceReportsScreen
+import pl.edu.ur.coopspace.administration_module.AdminGenerateStatisticRaportScreen
 import pl.edu.ur.coopspace.registration_module.AdminContactScreen
 import pl.edu.ur.coopspace.registration_module.LoginScreen
 import pl.edu.ur.coopspace.registration_module.UserRole
@@ -251,6 +253,41 @@ fun CoopSpaceApp() {
 
         composable("admin_raports") {
             AdminRaportsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo("admin_home") { inclusive = true }
+                    }
+                },
+                onNavigateToServiceReportsRaport = {
+                    navController.navigate("admin_raport_service_reports")
+                },
+                onNavigateToFinishedReports = {
+                    navController.navigate("admin_finished_reports")
+                },
+                onNavigateToStatisticRaport = {
+                    navController.navigate("admin_generate_statistic_raport")
+                }
+            )
+        }
+
+        composable("admin_generate_statistic_raport") {
+            AdminGenerateStatisticRaportScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo("admin_home") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("admin_raport_service_reports") {
+            AdminRaportOfServiceReportsScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 },

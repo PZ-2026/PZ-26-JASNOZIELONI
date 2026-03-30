@@ -23,7 +23,10 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun AdminRaportsScreen(
     onNavigateBack: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToServiceReportsRaport: () -> Unit = {},
+    onNavigateToFinishedReports: () -> Unit = {},
+    onNavigateToStatisticRaport: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -92,7 +95,7 @@ fun AdminRaportsScreen(
                     modifier = Modifier.size(110.dp).offset(x = 0.dp)
                 )
             },
-            onClick = { /* TODO */ }
+            onClick = onNavigateToServiceReportsRaport
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -108,14 +111,14 @@ fun AdminRaportsScreen(
                     modifier = Modifier.size(130.dp).offset(x = 0.dp)
                 )
             },
-            onClick = { /* TODO */ }
+            onClick = onNavigateToStatisticRaport
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Karta 3
         RaportCardItem(
-            title = "Protokóły wykonanych\nnapraw",
+            title = "Protokoły wykonanych\nnapraw",
             iconContent = {
                 Icon(
                     imageVector = Icons.Default.FileCopy,
@@ -124,7 +127,7 @@ fun AdminRaportsScreen(
                     modifier = Modifier.size(110.dp).offset(x = 0.dp)
                 )
             },
-            onClick = { /* TODO */ }
+            onClick = onNavigateToFinishedReports
         )
 
         Spacer(modifier = Modifier.weight(1f))
