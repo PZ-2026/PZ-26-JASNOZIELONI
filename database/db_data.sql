@@ -63,11 +63,11 @@ VALUES
 (1, 'OPEN', 3),
 (1, 'IN_PROGRESS', 2),
 (2, 'OPEN', 4),
-(4, 4, 'OPEN', 6),
-(5, 4, 'IN_PROGRESS', 9),
-(6, 5, 'OPEN', 7),
-(7, 6, 'OPEN', 8),
-(8, 7, 'OPEN', 10);
+(4, 'OPEN', 6),
+(4, 'IN_PROGRESS', 9),
+(5, 'OPEN', 7),
+(6, 'OPEN', 8),
+(7, 'OPEN', 10);
 
 -- ISSUE COMMENTS
 INSERT INTO issue_comment (issue_id, user_id, content)
