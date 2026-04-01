@@ -126,7 +126,7 @@ VALUES
 -- PAYMENTS
 INSERT INTO payment (charge_id, amount, payment_date)
 VALUES
-(2, 300, '2025-01-15');
+(2, 300, '2025-01-15'),
 (3, 430, '2025-01-12'),
 (5, 300, '2025-01-20');
 
