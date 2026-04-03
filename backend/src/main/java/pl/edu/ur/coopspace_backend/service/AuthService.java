@@ -16,32 +16,37 @@ public class AuthService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
     
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
-    
+
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
-        
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new RuntimeException("Nieprawidłowe hasło");
         }
-        
+
         if (!user.getIsActive()) {
             throw new RuntimeException("Użytkownik jest nieaktywny");
         }
-        
-        return mapToAuthResponse(user);
+
+        // 3. Generujemy token podczas logowania
+        String token = jwtService.generateToken(user.getEmail());
+
+        return mapToAuthResponse(user, token);
     }
-    
+
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email jest już zarejestrowany");
         }
-        
+
         User user = User.builder()
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
@@ -51,14 +56,18 @@ public class AuthService {
                 .role(UserRole.RESIDENT)
                 .isActive(true)
                 .build();
-        
+
         userRepository.save(user);
-        
-        return mapToAuthResponse(user);
+
+        // 4. Generujemy token również przy rejestracji (dzięki temu user jest od razu zalogowany)
+        String token = jwtService.generateToken(user.getEmail());
+
+        return mapToAuthResponse(user, token);
     }
-    
-    private AuthResponse mapToAuthResponse(User user) {
+
+    private AuthResponse mapToAuthResponse(User user, String token) {
         return new AuthResponse(
+                token,
                 user.getId(),
                 user.getEmail(),
                 user.getFirstName(),
