@@ -2,14 +2,36 @@ package pl.edu.ur.coopspace_backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
     
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                // wylaczenie CSRF, poniewaz w REST API nie jest potrzebne i blokuje zapytania POST
+                .csrf(csrf -> csrf.disable())
+                // konfiguracja uprawnien do sciezek
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll() // pozwol kazdemu na logowanie i rejestracje
+                        .anyRequest().authenticated() // pozostale zapytania wymagaja autoryzacji
+                )
+                // ustawiamy sesje na bezstanowa, czyli typowa dla API z JWT
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
+        return http.build();
     }
 }

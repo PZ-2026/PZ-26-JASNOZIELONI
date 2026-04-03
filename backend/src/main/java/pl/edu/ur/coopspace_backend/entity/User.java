@@ -2,6 +2,9 @@ package pl.edu.ur.coopspace_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -33,9 +36,11 @@ public class User {
     private String phoneNumber;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "role", nullable = false)
     private UserRole role;
-    
+
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
     

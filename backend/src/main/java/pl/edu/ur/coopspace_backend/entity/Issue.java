@@ -2,6 +2,8 @@ package pl.edu.ur.coopspace_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -37,6 +39,7 @@ public class Issue {
     private Integer mainAssigneeId;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     private IssueStatus status;
 
