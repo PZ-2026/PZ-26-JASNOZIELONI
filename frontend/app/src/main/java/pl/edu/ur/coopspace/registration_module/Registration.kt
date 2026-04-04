@@ -7,39 +7,45 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import pl.edu.ur.coopspace.auth.AuthApiClient
+import pl.edu.ur.coopspace.auth.AuthSessionStore
 
 enum class UserRole { ADMINISTRATOR, MIESZKANIEC, KONSERWATOR }
 
-data class User(
+data class AdminContact(
     val id: Int,
     val firstName: String,
     val lastName: String,
-    val role: UserRole,
     val phone: String,
     val email: String,
-    val address: String,
-    val password: String
+    val address: String
 )
 
-val pseudoDatabase = listOf(
-    User(1, "Anna", "Nowak", UserRole.ADMINISTRATOR, "+48 123 456 789", "anna.nowak@coopspace.pl", "ul. Spółdzielcza 1, Biuro 10", "123"),
-    User(2, "Jan", "Kowalski", UserRole.ADMINISTRATOR, "+48 987 654 321", "jan.kowalski@coopspace.pl", "ul. Spółdzielcza 1, Biuro 11", "123"),
-    User(3, "Mietek", "Kozidrak", UserRole.MIESZKANIEC, "+48 111 222 333", "mietek@kozidrak.pl", "ul. Polna 4/12", "123"),
-    User(4, "Zbigniew", "Zlota-Raczka", UserRole.KONSERWATOR, "+48 555 444 333", "usterki@coopspace.pl", "Warsztat bud. B", "123")
+private val adminContacts = listOf(
+    AdminContact(1, "Anna", "Nowak", "+48 123 456 789", "anna.nowak@coopspace.pl", "ul. Spoldzielcza 1, Biuro 10"),
+    AdminContact(2, "Jan", "Kowalski", "+48 987 654 321", "jan.kowalski@coopspace.pl", "ul. Spoldzielcza 1, Biuro 11")
 )
 
 @Composable
@@ -78,6 +84,10 @@ fun LoginScreen(
     var password by remember { mutableStateOf("123") }
     var rememberMe by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -126,8 +136,13 @@ fun LoginScreen(
             },
             label = { Text("Hasło") },
             isError = errorMessage != null,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
-                Icon(Icons.Default.Clear, contentDescription = "Wyczyść", modifier = Modifier.clickable { password = "" })
+                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(image, "Pokaż/ukryj hasło")
+                }
             },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -175,22 +190,61 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                // Logika sprawdzania w pseudo-bazie
-                val user = pseudoDatabase.find { 
-                    (it.email.equals(login, ignoreCase = true) || "${it.firstName}@${it.lastName}".equals(login, ignoreCase = true)) 
-                    && it.password == password
+                if (isLoading) return@Button
+
+                if (login.isBlank() || password.isBlank()) {
+                    errorMessage = "Uzupelnij email i haslo"
+                    return@Button
                 }
 
-                if (user != null) {
-                    onLoginSuccess(user.role)
-                } else {
-                    errorMessage = "Błędny login lub hasło"
+                isLoading = true
+                errorMessage = null
+
+                coroutineScope.launch {
+                    val result = AuthApiClient.login(login.trim(), password)
+                    isLoading = false
+
+                    result.onSuccess { response ->
+                        if (response.token.isBlank()) {
+                            errorMessage = "Backend nie zwrocil tokenu"
+                            return@onSuccess
+                        }
+
+                        if (rememberMe) {
+                            AuthSessionStore.saveSession(
+                                context = context,
+                                token = response.token,
+                                email = response.email,
+                                role = response.role
+                            )
+                        } else {
+                            AuthSessionStore.clearSession(context)
+                        }
+
+                        val appRole = mapBackendRoleToAppRole(response.role)
+                        if (appRole != null) {
+                            onLoginSuccess(appRole)
+                        } else {
+                            errorMessage = "Nieznana rola uzytkownika: ${response.role ?: "brak"}"
+                        }
+                    }.onFailure { throwable ->
+                        errorMessage = throwable.message ?: "Nie udalo sie zalogowac"
+                    }
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-            shape = RoundedCornerShape(50)
+            shape = RoundedCornerShape(50),
+            enabled = !isLoading
         ) {
-            Text(text = "Zaloguj", color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 32.dp))
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                Text(text = "Zaloguj", color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 32.dp))
+            }
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -214,11 +268,20 @@ fun LoginScreen(
     }
 }
 
+private fun mapBackendRoleToAppRole(role: String?): UserRole? {
+    return when (role?.uppercase()) {
+        "ADMIN" -> UserRole.ADMINISTRATOR
+        "RESIDENT" -> UserRole.MIESZKANIEC
+        "MAINTAINER" -> UserRole.KONSERWATOR
+        else -> null
+    }
+}
+
 @Composable
 fun AdminContactScreen(
     onBackClick: () -> Unit
 ) {
-    val admins = pseudoDatabase.filter { it.role == UserRole.ADMINISTRATOR }
+    val admins = adminContacts
 
     Column(
         modifier = Modifier
@@ -252,7 +315,7 @@ fun AdminContactScreen(
 }
 
 @Composable
-fun AdminCard(admin: User) {
+fun AdminCard(admin: AdminContact) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
