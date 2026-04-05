@@ -1,6 +1,9 @@
 package pl.edu.ur.coopspace.auth
 
 import android.content.Context
+import android.util.Base64
+import org.json.JSONObject
+import java.nio.charset.StandardCharsets
 
 object AuthSessionStore {
     private const val PREFS_NAME = "coopspace_auth"
@@ -15,6 +18,37 @@ object AuthSessionStore {
             .putString(KEY_EMAIL, email)
             .putString(KEY_ROLE, role)
             .apply()
+    }
+
+    fun getToken(context: Context): String? {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_TOKEN, null)
+    }
+
+    fun getRole(context: Context): String? {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_ROLE, null)
+    }
+
+    fun isTokenValid(token: String): Boolean {
+        return runCatching {
+            val jwtParts = token.split('.')
+            if (jwtParts.size != 3) {
+                return false
+            }
+
+            val payloadBytes = Base64.decode(jwtParts[1], Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+            val payload = String(payloadBytes, StandardCharsets.UTF_8)
+            val payloadJson = JSONObject(payload)
+
+            if (!payloadJson.has("exp")) {
+                return false
+            }
+
+            val expEpochSeconds = payloadJson.getLong("exp")
+            val currentEpochSeconds = System.currentTimeMillis() / 1000
+            expEpochSeconds > currentEpochSeconds
+        }.getOrDefault(false)
     }
 
     fun clearSession(context: Context) {

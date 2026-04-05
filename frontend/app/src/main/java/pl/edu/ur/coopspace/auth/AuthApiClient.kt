@@ -3,6 +3,7 @@ package pl.edu.ur.coopspace.auth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import pl.edu.ur.coopspace.BuildConfig
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -20,12 +21,10 @@ data class BackendAuthResponse(
 )
 
 object AuthApiClient {
-    // 10.0.2.2 points from Android emulator to localhost on development machine.
-    private const val BASE_URL = "http://10.0.2.2:8080"
-
     suspend fun login(email: String, password: String): Result<BackendAuthResponse> = withContext(Dispatchers.IO) {
         runCatching {
-            val url = URL("$BASE_URL/api/auth/login")
+            val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+            val url = URL("$baseUrl/api/auth/login")
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 connectTimeout = 10000
