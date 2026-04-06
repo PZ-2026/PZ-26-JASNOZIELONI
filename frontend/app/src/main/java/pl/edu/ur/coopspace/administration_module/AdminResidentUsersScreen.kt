@@ -16,9 +16,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import pl.edu.ur.coopspace.auth.AuthSessionStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,9 +29,147 @@ fun AdminResidentUsersScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var searchQuery by remember { mutableStateOf("") }
+    var selectedActivityFilter by remember { mutableStateOf("ALL") }
+    var residents by remember { mutableStateOf<List<AdminUserDto>>(emptyList()) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
 
-    val mockResidents = List(6) { "Imie nazwisko | Adres" }
+    var showAddDialog by remember { mutableStateOf(false) }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var localIdText by remember { mutableStateOf("") }
+    var isCreating by remember { mutableStateOf(false) }
+    var updatingUserId by remember { mutableStateOf<Int?>(null) }
+
+    suspend fun loadResidents() {
+        isLoading = true
+        errorMessage = null
+
+        val token = AuthSessionStore.getToken(context)
+        if (token.isNullOrBlank()) {
+            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            isLoading = false
+            return
+        }
+
+        UserAdminApiClient.getResidents(token)
+            .onSuccess { residents = it }
+            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udalo sie pobrac listy mieszkancow" }
+
+        isLoading = false
+    }
+
+    suspend fun updateResidentState(resident: AdminUserDto, isActive: Boolean) {
+        val token = AuthSessionStore.getToken(context)
+        if (token.isNullOrBlank()) {
+            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            return
+        }
+
+        updatingUserId = resident.id
+        errorMessage = null
+
+        UserAdminApiClient.updateUserActiveState(token, resident.id, isActive)
+            .onSuccess { loadResidents() }
+            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udalo sie zmienic stanu konta" }
+
+        updatingUserId = null
+    }
+
+    LaunchedEffect(Unit) {
+        loadResidents()
+    }
+
+    val filteredResidents = residents.filter { resident ->
+        val matchesSearch = searchQuery.isBlank() || "${resident.firstName} ${resident.lastName} ${resident.email}".contains(searchQuery, ignoreCase = true)
+        val matchesActivity = when (selectedActivityFilter) {
+            "ACTIVE" -> resident.isActive
+            "INACTIVE" -> !resident.isActive
+            else -> true
+        }
+
+        matchesSearch && matchesActivity
+    }
+
+    if (showAddDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!isCreating) showAddDialog = false },
+            title = { Text("Dodaj mieszkanca") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(value = firstName, onValueChange = { firstName = it }, label = { Text("Imie") }, singleLine = true)
+                    OutlinedTextField(value = lastName, onValueChange = { lastName = it }, label = { Text("Nazwisko") }, singleLine = true)
+                    OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") }, singleLine = true)
+                    OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Haslo") }, singleLine = true)
+                    OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Telefon") }, singleLine = true)
+                    OutlinedTextField(value = localIdText, onValueChange = { localIdText = it.filter(Char::isDigit) }, label = { Text("Numer lokalu (ID)") }, singleLine = true)
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (isCreating) return@Button
+
+                        val localId = localIdText.toIntOrNull()
+                        if (firstName.isBlank() || lastName.isBlank() || email.isBlank() || password.isBlank() || localId == null) {
+                            errorMessage = "Uzupelnij wszystkie wymagane pola i poprawny numer lokalu"
+                            return@Button
+                        }
+
+                        val token = AuthSessionStore.getToken(context)
+                        if (token.isNullOrBlank()) {
+                            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+                            return@Button
+                        }
+
+                        isCreating = true
+                        errorMessage = null
+                        coroutineScope.launch {
+                            UserAdminApiClient.createResident(
+                                token = token,
+                                email = email.trim(),
+                                password = password,
+                                firstName = firstName.trim(),
+                                lastName = lastName.trim(),
+                                phoneNumber = phone.ifBlank { null },
+                                localId = localId
+                            ).onSuccess {
+                                showAddDialog = false
+                                firstName = ""
+                                lastName = ""
+                                email = ""
+                                password = ""
+                                phone = ""
+                                localIdText = ""
+                                loadResidents()
+                            }.onFailure { throwable ->
+                                errorMessage = throwable.message ?: "Nie udalo sie utworzyc konta mieszkanca"
+                            }
+                            isCreating = false
+                        }
+                    },
+                    enabled = !isCreating
+                ) {
+                    if (isCreating) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    } else {
+                        Text("Utworz")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { if (!isCreating) showAddDialog = false }) {
+                    Text("Anuluj")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -128,41 +269,88 @@ fun AdminResidentUsersScreen(
             singleLine = true
         )
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = selectedActivityFilter == "ALL",
+                onClick = { selectedActivityFilter = "ALL" },
+                label = { Text("Wszystkie") }
+            )
+            FilterChip(
+                selected = selectedActivityFilter == "ACTIVE",
+                onClick = { selectedActivityFilter = "ACTIVE" },
+                label = { Text("Aktywne") }
+            )
+            FilterChip(
+                selected = selectedActivityFilter == "INACTIVE",
+                onClick = { selectedActivityFilter = "INACTIVE" },
+                label = { Text("Nieaktywne") }
+            )
+        }
+
         Spacer(modifier = Modifier.height(32.dp))
+
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage!!,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+        }
 
         // Lista mieszkańców
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            items(mockResidents.size) { index ->
+            items(filteredResidents.size) { index ->
+                val resident = filteredResidents[index]
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = mockResidents[index],
-                        fontSize = 16.sp,
-                        color = Color.Black.copy(alpha = 0.8f)
-                    )
-                    
-                    Row(
-                        modifier = Modifier.clickable { /* TODO: Szczegóły mieszkańca */ },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Szczegóły",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.DarkGray
+                            text = "${resident.firstName} ${resident.lastName} | Lokal ${resident.localId ?: "-"}",
+                            fontSize = 16.sp,
+                            color = Color.Black.copy(alpha = 0.8f)
                         )
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowRight,
-                            contentDescription = "Więcej",
-                            tint = Color.DarkGray,
-                            modifier = Modifier.size(20.dp)
+                        Text(
+                            text = if (resident.isActive) "Konto aktywne" else "Konto dezaktywowane",
+                            fontSize = 12.sp,
+                            color = if (resident.isActive) Color(0xFF2E7D32) else Color(0xFFC62828)
                         )
+                    }
+
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                updateResidentState(resident, !resident.isActive)
+                            }
+                        },
+                        enabled = updatingUserId != resident.id,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (resident.isActive) Color(0xFFC62828) else Color(0xFF2E7D32)
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        if (updatingUserId == resident.id) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
+                        } else {
+                            Text(if (resident.isActive) "Dezaktywuj" else "Aktywuj")
+                        }
                     }
                 }
             }
@@ -176,7 +364,7 @@ fun AdminResidentUsersScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             OutlinedButton(
-                onClick = { /* TODO: Dodaj mieszkańca */ },
+                onClick = { showAddDialog = true },
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
                 ),

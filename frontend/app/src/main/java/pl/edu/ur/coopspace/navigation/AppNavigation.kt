@@ -21,6 +21,7 @@ import pl.edu.ur.coopspace.administration_module.AdminPaymentSettingsScreen
 import pl.edu.ur.coopspace.administration_module.AdminRaportsScreen
 import pl.edu.ur.coopspace.administration_module.AdminRaportOfServiceReportsScreen
 import pl.edu.ur.coopspace.administration_module.AdminGenerateStatisticRaportScreen
+import pl.edu.ur.coopspace.administration_module.AdminIssueDetailsScreen
 import pl.edu.ur.coopspace.auth.AuthSessionStore
 import pl.edu.ur.coopspace.registration_module.AdminContactScreen
 import pl.edu.ur.coopspace.registration_module.LoginScreen
@@ -246,6 +247,9 @@ fun CoopSpaceApp() {
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
+                },
+                onTicketClick = { ticketId ->
+                    navController.navigate("admin_issue_details/$ticketId")
                 }
             )
         }
@@ -255,6 +259,26 @@ fun CoopSpaceApp() {
                 onNavigateBack = {
                     navController.popBackStack()
                 },
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("admin_home") { inclusive = true }
+                    }
+                },
+                onTicketClick = { ticketId ->
+                    navController.navigate("admin_issue_details/$ticketId")
+                }
+            )
+        }
+
+        composable(
+            "admin_issue_details/{ticketId}",
+            arguments = listOf(androidx.navigation.navArgument("ticketId") { type = androidx.navigation.NavType.IntType })
+        ) { backStackEntry ->
+            val ticketId = backStackEntry.arguments?.getInt("ticketId") ?: 1
+            AdminIssueDetailsScreen(
+                ticketId = ticketId,
+                onBackClick = { navController.popBackStack() },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
                     navController.navigate("login") {

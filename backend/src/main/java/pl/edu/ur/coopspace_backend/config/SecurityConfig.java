@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 // konfiguracja uprawnien do sciezek
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // pozwol kazdemu na logowanie i rejestracje
+                    .requestMatchers("/api/auth/login").permitAll() // publiczny jest tylko login
                         .anyRequest().authenticated() // pozostale zapytania wymagaja autoryzacji
                 )
                 // ustawiamy sesje na bezstanowa, czyli typowa dla API z JWT

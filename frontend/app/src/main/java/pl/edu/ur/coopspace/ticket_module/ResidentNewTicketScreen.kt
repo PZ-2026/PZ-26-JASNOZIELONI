@@ -11,14 +11,18 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import pl.edu.ur.coopspace.auth.AuthSessionStore
 import pl.edu.ur.coopspace.ui.theme.Purple40
 import pl.edu.ur.coopspace.ui.theme.PurpleGrey80
 
@@ -27,12 +31,29 @@ import pl.edu.ur.coopspace.ui.theme.PurpleGrey80
 fun ResidentNewTicketScreen(
     onBackClick: () -> Unit
 ) {
-    var title by remember { mutableStateOf("Tekst") }
-    var description by remember { mutableStateOf("Teskt") }
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     
     var categoryExpanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("") }
-    val categories = listOf("Hydraulika", "Elektryka", "Wandalizm", "Inne")
+    var categories by remember { mutableStateOf<List<IssueCategoryDto>>(emptyList()) }
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        val token = AuthSessionStore.getToken(context)
+        if (token.isNullOrBlank()) {
+            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            return@LaunchedEffect
+        }
+
+        IssueApiClient.getIssueCategories(token)
+            .onSuccess { categories = it }
+            .onFailure { errorMessage = it.message ?: "Nie udalo sie pobrac kategorii" }
+    }
 
     var locationExpanded by remember { mutableStateOf(false) }
     var selectedLocation by remember { mutableStateOf("") }
@@ -98,6 +119,15 @@ fun ResidentNewTicketScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
             // Tytuł zgłoszenia
@@ -166,13 +196,17 @@ fun ResidentNewTicketScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Kategoria") },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryEditable, enabled = true).fillMaxWidth(),
                     leadingIcon = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Spacer(modifier = Modifier.width(12.dp))
                             Icon(imageVector = Icons.Default.Search, contentDescription = "Szukaj")
                             Spacer(modifier = Modifier.width(8.dp))
-                            Divider(modifier = Modifier.height(24.dp).width(1.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                            HorizontalDivider(
+                                modifier = Modifier.height(24.dp).width(1.dp),
+                                thickness = DividerDefaults.Thickness,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            )
                             Spacer(modifier = Modifier.width(4.dp))
                         }
                     },
@@ -201,9 +235,9 @@ fun ResidentNewTicketScreen(
                 ) {
                     categories.forEach { category ->
                         DropdownMenuItem(
-                            text = { Text(text = category) },
+                            text = { Text(text = category.name) },
                             onClick = {
-                                selectedCategory = category
+                                selectedCategory = category.name
                                 categoryExpanded = false
                             }
                         )
@@ -224,13 +258,17 @@ fun ResidentNewTicketScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Miejsce") },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryEditable, enabled = true).fillMaxWidth(),
                     leadingIcon = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Spacer(modifier = Modifier.width(12.dp))
                             Icon(imageVector = Icons.Default.Search, contentDescription = "Szukaj")
                             Spacer(modifier = Modifier.width(8.dp))
-                            Divider(modifier = Modifier.height(24.dp).width(1.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                            HorizontalDivider(
+                                modifier = Modifier.height(24.dp).width(1.dp),
+                                thickness = DividerDefaults.Thickness,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            )
                             Spacer(modifier = Modifier.width(4.dp))
                         }
                     },
@@ -287,14 +325,60 @@ fun ResidentNewTicketScreen(
 
             // Wyślij zgłoszenie
             Button(
-                onClick = { /* TODO */ },
+                onClick = {
+                    if (isLoading) return@Button
+
+                    if (title.isBlank() || description.isBlank() || selectedCategory.isBlank()) {
+                        errorMessage = "Uzupelnij tytul, opis i kategorie"
+                        return@Button
+                    }
+
+                    val selectedCategoryId = categories.firstOrNull { it.name == selectedCategory }?.id
+                    if (selectedCategoryId == null) {
+                        errorMessage = "Wybierz poprawna kategorie"
+                        return@Button
+                    }
+
+                    val token = AuthSessionStore.getToken(context)
+                    if (token.isNullOrBlank()) {
+                        errorMessage = "Brak sesji. Zaloguj sie ponownie."
+                        return@Button
+                    }
+
+                    errorMessage = null
+                    isLoading = true
+                    coroutineScope.launch {
+                        val result = IssueApiClient.createIssue(
+                            token = token,
+                            title = title.trim(),
+                            description = description.trim(),
+                            categoryId = selectedCategoryId
+                        )
+
+                        isLoading = false
+                        result.onSuccess {
+                            onBackClick()
+                        }.onFailure {
+                            errorMessage = it.message ?: "Nie udalo sie wyslac zgloszenia"
+                        }
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Purple40
                 ),
                 shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.height(48.dp)
+                modifier = Modifier.height(48.dp),
+                enabled = !isLoading
             ) {
-                Text("Wyślij zgłoszenie")
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Wyślij zgłoszenie")
+                }
             }
         }
     }
