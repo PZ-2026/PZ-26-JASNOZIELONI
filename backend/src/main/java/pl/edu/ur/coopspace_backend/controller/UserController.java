@@ -17,6 +17,7 @@ import pl.edu.ur.coopspace_backend.dto.AdminCreateUserRequest;
 import pl.edu.ur.coopspace_backend.dto.AdminUserResponse;
 import pl.edu.ur.coopspace_backend.entity.User;
 import pl.edu.ur.coopspace_backend.entity.UserRole;
+import pl.edu.ur.coopspace_backend.repository.LocalRepository;
 import pl.edu.ur.coopspace_backend.repository.UserRepository;
 
 import java.util.Comparator;
@@ -28,10 +29,12 @@ import java.util.List;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final LocalRepository localRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserController(UserRepository userRepository, LocalRepository localRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.localRepository = localRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -70,6 +73,10 @@ public class UserController {
         validateCreateRequest(request);
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email jest juz zarejestrowany");
+        }
+
+        if (request.getRole() == UserRole.RESIDENT) {
+            validateResidentLocalId(request.getLocalId());
         }
 
         User user = User.builder()
@@ -150,6 +157,16 @@ public class UserController {
         }
         if (request.getRole() == UserRole.RESIDENT && request.getLocalId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dla mieszkanca localId jest wymagane");
+        }
+    }
+
+    private void validateResidentLocalId(Integer localId) {
+        if (localId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dla mieszkanca localId jest wymagane");
+        }
+
+        if (!localRepository.existsById(localId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wskazany lokal nie istnieje");
         }
     }
 

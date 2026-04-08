@@ -18,6 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -40,6 +41,7 @@ import pl.edu.ur.coopspace.auth.AuthSessionStore
 import pl.edu.ur.coopspace.ticket_module.IssueApiClient
 import pl.edu.ur.coopspace.ticket_module.IssueDto
 import pl.edu.ur.coopspace.ticket_module.MaintainerDto
+import pl.edu.ur.coopspace.ticket_module.IssueImagesGallery
 import pl.edu.ur.coopspace.ticket_module.toUiStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -127,6 +129,13 @@ fun AdminIssueDetailsScreen(
                 Text(text = "ID: ${currentIssue.id}", style = MaterialTheme.typography.labelMedium)
                 Spacer(modifier = Modifier.height(8.dp))
 
+                IssueImagesGallery(
+                    issueId = currentIssue.id,
+                    managementEnabled = true
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 OutlinedTextField(
                     value = currentIssue.title,
                     onValueChange = {},
@@ -178,7 +187,7 @@ fun AdminIssueDetailsScreen(
                         label = { Text("Nowy status") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded) },
                         modifier = Modifier
-                            .menuAnchor()
+                            .menuAnchor(type=MenuAnchorType.PrimaryEditable, enabled=true)
                             .fillMaxWidth()
                     )
 
@@ -239,7 +248,7 @@ fun AdminIssueDetailsScreen(
                         label = { Text("Przypisz konserwatora") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = assigneeExpanded) },
                         modifier = Modifier
-                            .menuAnchor()
+                            .menuAnchor(type=MenuAnchorType.PrimaryEditable, enabled=true)
                             .fillMaxWidth()
                     )
 

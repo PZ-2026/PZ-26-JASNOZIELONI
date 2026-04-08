@@ -25,6 +25,9 @@ import kotlinx.coroutines.launch
 import pl.edu.ur.coopspace.auth.AuthSessionStore
 import pl.edu.ur.coopspace.ui.theme.Purple40
 import pl.edu.ur.coopspace.ui.theme.PurpleGrey80
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,9 +42,16 @@ fun ResidentNewTicketScreen(
     var categoryExpanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("") }
     var categories by remember { mutableStateOf<List<IssueCategoryDto>>(emptyList()) }
+    var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var uploadedIssueId by remember { mutableStateOf<Int?>(null) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        selectedImageUris = (selectedImageUris + uris).distinct()
+    }
 
     LaunchedEffect(Unit) {
         val token = AuthSessionStore.getToken(context)
@@ -309,7 +319,7 @@ fun ResidentNewTicketScreen(
 
             // Dodaj zdjęcie
             Button(
-                onClick = { /* TODO */ },
+                onClick = { imagePickerLauncher.launch("image/*") },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Purple40
                 ),
@@ -318,7 +328,18 @@ fun ResidentNewTicketScreen(
             ) {
                 Icon(imageVector = Icons.Outlined.Image, contentDescription = "Aparat/Zdjęcie")
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Dodaj zdjęcie")
+                Text(if (selectedImageUris.isEmpty()) "Dodaj zdjęcia" else "Zdjęcia: ${selectedImageUris.size}")
+            }
+
+            if (selectedImageUris.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "Wybrano ${selectedImageUris.size} zdjęć", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    TextButton(onClick = { selectedImageUris = emptyList() }) {
+                        Text("Wyczyść")
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -357,7 +378,32 @@ fun ResidentNewTicketScreen(
 
                         isLoading = false
                         result.onSuccess {
-                            onBackClick()
+                            uploadedIssueId = it.id
+                            if (selectedImageUris.isEmpty()) {
+                                onBackClick()
+                                return@launch
+                            }
+
+                            var uploadFailed = false
+                            for (uri in selectedImageUris) {
+                                val uploadResult = IssueApiClient.uploadIssueImage(
+                                    token = token,
+                                    issueId = it.id,
+                                    context = context,
+                                    uri = uri
+                                )
+
+                                if (uploadResult.isFailure) {
+                                    uploadFailed = true
+                                    errorMessage = uploadResult.exceptionOrNull()?.message ?: "Nie udalo sie zapisac zdjęć"
+                                    break
+                                }
+                            }
+
+                            if (!uploadFailed) {
+                                selectedImageUris = emptyList()
+                                onBackClick()
+                            }
                         }.onFailure {
                             errorMessage = it.message ?: "Nie udalo sie wyslac zgloszenia"
                         }

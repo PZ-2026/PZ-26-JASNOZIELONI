@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
@@ -241,6 +240,14 @@ fun ServiceTicketDetailsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            if (issue != null) {
+                IssueImagesGallery(
+                    issueId = issue!!.id,
+                    managementEnabled = true
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             // Komentarz zgłoszenia
             Column(modifier = Modifier.fillMaxWidth(0.85f)) {
                 Text(
@@ -277,7 +284,7 @@ fun ServiceTicketDetailsScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Status zgłoszenia") },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    modifier = Modifier.menuAnchor(type=MenuAnchorType.PrimaryEditable, enabled=true).fillMaxWidth(),
                     leadingIcon = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Spacer(modifier = Modifier.width(12.dp))
@@ -322,22 +329,6 @@ fun ServiceTicketDetailsScreen(
                         )
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Wyświetl zdjęcie
-            Button(
-                onClick = { /* TODO */ },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Purple40
-                ),
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.height(48.dp)
-            ) {
-                Icon(imageVector = Icons.Outlined.Image, contentDescription = "Wyświetl zdjęcie")
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Wyświetl zdjęcie")
             }
 
             Spacer(modifier = Modifier.height(16.dp))

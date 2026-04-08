@@ -263,19 +263,19 @@ public class DataInitializer {
             // ISSUE IMAGES
             jdbcTemplate.update(
                 "INSERT INTO issue_image (issue_id, file_path) VALUES (?, ?)",
-                1, "/images/issue1.jpg"
+                1, "issue1.png"
             );
             jdbcTemplate.update(
                 "INSERT INTO issue_image (issue_id, file_path) VALUES (?, ?)",
-                2, "/images/issue2.jpg"
+                2, "issue2.png"
             );
             jdbcTemplate.update(
                 "INSERT INTO issue_image (issue_id, file_path) VALUES (?, ?)",
-                4, "/images/issue4.jpg"
+                4, "issue4.png"
             );
             jdbcTemplate.update(
                 "INSERT INTO issue_image (issue_id, file_path) VALUES (?, ?)",
-                5, "/images/issue5.jpg"
+                5, "issue5.png"
             );
             
             // CHARGES

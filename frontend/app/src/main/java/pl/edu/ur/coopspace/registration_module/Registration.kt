@@ -80,8 +80,8 @@ fun LoginScreen(
     onLoginSuccess: (UserRole) -> Unit
 ) {
     // Domyślnie ustawiamy maila admina dla łatwego testowania
-    var login by remember { mutableStateOf("anna.nowak@coopspace.pl") }
-    var password by remember { mutableStateOf("123") }
+    var login by remember { mutableStateOf("admin@test.com") }
+    var password by remember { mutableStateOf("admin123") }
     var rememberMe by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }

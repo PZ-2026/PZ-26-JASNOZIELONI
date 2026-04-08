@@ -1,10 +1,13 @@
 package pl.edu.ur.coopspace.ticket_module
 
+import android.content.Context
+import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import pl.edu.ur.coopspace.BuildConfig
+import java.io.BufferedOutputStream
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -17,6 +20,14 @@ data class IssueDto(
     val categoryId: Int?,
     val localId: Int?,
     val status: String
+)
+
+data class IssueImageDto(
+    val id: Int,
+    val issueId: Int,
+    val filePath: String,
+    val downloadUrl: String,
+    val createdAt: String?
 )
 
 data class IssueCategoryDto(
@@ -59,6 +70,27 @@ object IssueApiClient {
         runCatching {
             val response = request("GET", "/api/issues/assigned", token)
             parseIssues(response)
+        }
+    }
+
+    suspend fun getIssueImages(token: String, issueId: Int): Result<List<IssueImageDto>> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response = request("GET", "/api/issues/$issueId/images", token)
+            val array = JSONArray(response)
+            buildList {
+                for (index in 0 until array.length()) {
+                    val item = array.getJSONObject(index)
+                    add(
+                        IssueImageDto(
+                            id = item.getInt("id"),
+                            issueId = item.getInt("issueId"),
+                            filePath = item.optString("filePath", ""),
+                            downloadUrl = item.optString("downloadUrl", ""),
+                            createdAt = item.optStringOrNull("createdAt")
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -112,6 +144,55 @@ object IssueApiClient {
                 parseIssue(JSONObject(response))
             }
         }
+
+    suspend fun uploadIssueImage(
+        token: String,
+        issueId: Int,
+        context: Context,
+        uri: Uri
+    ): Result<IssueImageDto> = withContext(Dispatchers.IO) {
+        runCatching {
+            val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
+            val fileName = resolveFileName(context, uri, mimeType)
+            val fileBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                ?: throw IllegalStateException("Nie udalo sie odczytac zdjecia")
+
+            val boundary = "----CoopSpaceBoundary${System.currentTimeMillis()}"
+            val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+            val url = URL("$baseUrl/api/issues/$issueId/images")
+            val connection = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                connectTimeout = 10000
+                readTimeout = 10000
+                setRequestProperty("Authorization", "Bearer $token")
+                setRequestProperty("Accept", "application/json")
+                setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+                doOutput = true
+            }
+
+            connection.outputStream.use { rawOutput ->
+                val output = BufferedOutputStream(rawOutput)
+                writeMultipartFile(output, boundary, "file", fileName, mimeType, fileBytes)
+                output.write("--$boundary--\r\n".toByteArray())
+                output.flush()
+            }
+
+            val responseCode = connection.responseCode
+            val responseBody = readResponseBody(connection)
+            if (responseCode !in 200..299) {
+                throw IllegalStateException(extractErrorMessage(responseBody))
+            }
+
+            parseImage(JSONObject(responseBody))
+        }
+    }
+
+    suspend fun deleteIssueImage(token: String, issueId: Int, imageId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            request("DELETE", "/api/issues/$issueId/images/$imageId", token)
+            Unit
+        }
+    }
 
     suspend fun getMaintainers(token: String): Result<List<MaintainerDto>> = withContext(Dispatchers.IO) {
         runCatching {
@@ -185,6 +266,47 @@ object IssueApiClient {
         )
     }
 
+    private fun parseImage(json: JSONObject): IssueImageDto {
+        return IssueImageDto(
+            id = json.getInt("id"),
+            issueId = json.getInt("issueId"),
+            filePath = json.optString("filePath", ""),
+            downloadUrl = json.optString("downloadUrl", ""),
+            createdAt = json.optStringOrNull("createdAt")
+        )
+    }
+
+    private fun writeMultipartFile(
+        output: BufferedOutputStream,
+        boundary: String,
+        fieldName: String,
+        fileName: String,
+        mimeType: String,
+        bytes: ByteArray
+    ) {
+        output.write("--$boundary\r\n".toByteArray())
+        output.write("Content-Disposition: form-data; name=\"$fieldName\"; filename=\"$fileName\"\r\n".toByteArray())
+        output.write("Content-Type: $mimeType\r\n\r\n".toByteArray())
+        output.write(bytes)
+        output.write("\r\n".toByteArray())
+    }
+
+    private fun resolveFileName(context: Context, uri: Uri, mimeType: String): String {
+        val extension = when {
+            mimeType.contains("png", ignoreCase = true) -> ".png"
+            mimeType.contains("webp", ignoreCase = true) -> ".webp"
+            mimeType.contains("jpg", ignoreCase = true) || mimeType.contains("jpeg", ignoreCase = true) -> ".jpg"
+            else -> ".jpg"
+        }
+
+        val lastSegment = uri.lastPathSegment?.substringAfterLast('/')?.takeIf { it.isNotBlank() }
+        return if (lastSegment.isNullOrBlank()) {
+            "issue_image$extension"
+        } else {
+            lastSegment
+        }
+    }
+
     private fun readResponseBody(connection: HttpURLConnection): String {
         val stream = connection.errorStream ?: connection.inputStream
         return stream?.use {
@@ -210,4 +332,13 @@ object IssueApiClient {
 
 private fun JSONObject.optIntOrNull(name: String): Int? {
     return if (isNull(name)) null else optInt(name)
+}
+
+private fun JSONObject.optStringOrNull(name: String): String? {
+    if (!has(name) || isNull(name)) {
+        return null
+    }
+
+    val value = optString(name, "")
+    return value.ifBlank { null }
 }

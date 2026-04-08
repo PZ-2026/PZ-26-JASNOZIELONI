@@ -3,28 +3,38 @@ package pl.edu.ur.coopspace_backend.service;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import pl.edu.ur.coopspace_backend.dto.IssueAssignRequest;
 import pl.edu.ur.coopspace_backend.dto.IssueCategoryResponse;
 import pl.edu.ur.coopspace_backend.dto.IssueCreateRequest;
+import pl.edu.ur.coopspace_backend.dto.IssueImageResponse;
 import pl.edu.ur.coopspace_backend.dto.IssueResponse;
 import pl.edu.ur.coopspace_backend.dto.IssueStatusUpdateRequest;
 import pl.edu.ur.coopspace_backend.entity.Issue;
 import pl.edu.ur.coopspace_backend.entity.IssueAssignment;
 import pl.edu.ur.coopspace_backend.entity.IssueCategory;
+import pl.edu.ur.coopspace_backend.entity.IssueImage;
 import pl.edu.ur.coopspace_backend.entity.IssueStatus;
 import pl.edu.ur.coopspace_backend.entity.IssueStatusHistory;
 import pl.edu.ur.coopspace_backend.entity.User;
 import pl.edu.ur.coopspace_backend.entity.UserRole;
 import pl.edu.ur.coopspace_backend.repository.IssueAssignmentRepository;
 import pl.edu.ur.coopspace_backend.repository.IssueCategoryRepository;
+import pl.edu.ur.coopspace_backend.repository.IssueImageRepository;
 import pl.edu.ur.coopspace_backend.repository.IssueRepository;
 import pl.edu.ur.coopspace_backend.repository.IssueStatusHistoryRepository;
 import pl.edu.ur.coopspace_backend.repository.UserRepository;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -34,6 +44,7 @@ public class IssueService {
     private final IssueCategoryRepository issueCategoryRepository;
     private final IssueStatusHistoryRepository issueStatusHistoryRepository;
     private final IssueAssignmentRepository issueAssignmentRepository;
+    private final IssueImageRepository issueImageRepository;
     private final UserRepository userRepository;
 
     public IssueService(
@@ -41,12 +52,14 @@ public class IssueService {
             IssueCategoryRepository issueCategoryRepository,
             IssueStatusHistoryRepository issueStatusHistoryRepository,
             IssueAssignmentRepository issueAssignmentRepository,
+            IssueImageRepository issueImageRepository,
             UserRepository userRepository
     ) {
         this.issueRepository = issueRepository;
         this.issueCategoryRepository = issueCategoryRepository;
         this.issueStatusHistoryRepository = issueStatusHistoryRepository;
         this.issueAssignmentRepository = issueAssignmentRepository;
+        this.issueImageRepository = issueImageRepository;
         this.userRepository = userRepository;
     }
 
@@ -184,6 +197,95 @@ public class IssueService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<IssueImageResponse> getIssueImages(String currentUserEmail, Integer issueId) {
+        User currentUser = getCurrentUser(currentUserEmail);
+        Issue issue = getIssueOrThrow(issueId);
+        assertCanAccessIssue(currentUser, issue);
+
+        return issueImageRepository.findByIssueId(issueId)
+                .stream()
+                .sorted(Comparator.comparing(IssueImage::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                .map(this::toImageResponse)
+                .toList();
+    }
+
+    public IssueImageResponse addIssueImage(String currentUserEmail, Integer issueId, MultipartFile file) {
+        User currentUser = getCurrentUser(currentUserEmail);
+        Issue issue = getIssueOrThrow(issueId);
+        assertCanAccessIssue(currentUser, issue);
+
+        if (file == null || file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Plik zdjecia jest wymagany");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        String extension = extractExtension(originalFilename);
+        String safeFileName = UUID.randomUUID() + extension;
+
+        Path targetDirectory = getIssueImageDirectory(issueId);
+        Path targetPath = targetDirectory.resolve(safeFileName).normalize();
+
+        try {
+            Files.createDirectories(targetPath.getParent());
+            try (InputStream inputStream = file.getInputStream()) {
+                Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Nie udalo sie zapisac zdjecia");
+        }
+
+        IssueImage savedImage = issueImageRepository.save(IssueImage.builder()
+                .issueId(issueId)
+            .filePath(safeFileName)
+                .createdAt(LocalDateTime.now())
+                .build());
+
+        return toImageResponse(savedImage);
+    }
+
+    public IssueImage getIssueImage(String currentUserEmail, Integer issueId, Integer imageId) {
+        User currentUser = getCurrentUser(currentUserEmail);
+        Issue issue = getIssueOrThrow(issueId);
+        assertCanAccessIssue(currentUser, issue);
+
+        IssueImage image = issueImageRepository.findById(imageId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zdjecie nie istnieje"));
+
+        if (!issueId.equals(image.getIssueId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Zdjecie nie istnieje dla tego zgloszenia");
+        }
+
+        return image;
+    }
+
+    public void deleteIssueImage(String currentUserEmail, Integer issueId, Integer imageId) {
+        IssueImage image = getIssueImage(currentUserEmail, issueId, imageId);
+        Path path = resolveIssueImagePath(issueId, image.getFilePath());
+
+        issueImageRepository.delete(image);
+
+        try {
+            Files.deleteIfExists(path);
+
+            Path parentDirectory = path.getParent();
+            if (parentDirectory != null && Files.exists(parentDirectory)) {
+                try (var entries = Files.list(parentDirectory)) {
+                    if (entries.findAny().isEmpty()) {
+                        Files.deleteIfExists(parentDirectory);
+                    }
+                }
+            }
+        } catch (IOException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Nie udalo sie usunac pliku zdjecia");
+        }
+    }
+
+    public Path getIssueImagePath(String currentUserEmail, Integer issueId, Integer imageId) {
+        IssueImage image = getIssueImage(currentUserEmail, issueId, imageId);
+        return resolveIssueImagePath(issueId, image.getFilePath());
+    }
+
     private void validateCreateRequest(IssueCreateRequest request) {
         if (request == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dane zgloszenia sa wymagane");
@@ -234,6 +336,53 @@ public class IssueService {
                 .changedBy(changedBy)
                 .changedAt(changedAt)
                 .build());
+    }
+
+    private void assertCanAccessIssue(User currentUser, Issue issue) {
+        if (currentUser.getRole() == UserRole.ADMIN) {
+            return;
+        }
+
+        if (currentUser.getRole() == UserRole.RESIDENT && issue.getCreatedByUserId().equals(currentUser.getId())) {
+            return;
+        }
+
+        if (currentUser.getRole() == UserRole.MAINTAINER && issue.getMainAssigneeId() != null && issue.getMainAssigneeId().equals(currentUser.getId())) {
+            return;
+        }
+
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnien do tego zgloszenia");
+    }
+
+    private String extractExtension(String originalFilename) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            return ".jpg";
+        }
+
+        int index = originalFilename.lastIndexOf('.');
+        if (index < 0 || index == originalFilename.length() - 1) {
+            return ".jpg";
+        }
+
+        return originalFilename.substring(index).toLowerCase();
+    }
+
+    private IssueImageResponse toImageResponse(IssueImage image) {
+        return new IssueImageResponse(
+                image.getId(),
+                image.getIssueId(),
+                image.getFilePath(),
+                "/api/issues/" + image.getIssueId() + "/images/" + image.getId(),
+                image.getCreatedAt()
+        );
+    }
+
+    private Path getIssueImageDirectory(Integer issueId) {
+        return Path.of("uploads", "issue-images", issueId.toString()).toAbsolutePath().normalize();
+    }
+
+    private Path resolveIssueImagePath(Integer issueId, String fileName) {
+        return getIssueImageDirectory(issueId).resolve(fileName).normalize();
     }
 
     private IssueResponse toResponse(Issue issue) {
