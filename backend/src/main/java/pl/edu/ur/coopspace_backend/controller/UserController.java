@@ -26,6 +26,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
+/**
+ * Endpointy administracyjne do zarzadzania uzytkownikami.
+ *
+ * <p>Kontroler pozwala administratorowi listowac uzytkownikow, tworzyc konta
+ * mieszkancow i konserwatorow oraz zmieniac stan aktywnosci konta.</p>
+ */
 public class UserController {
 
     private final UserRepository userRepository;
@@ -38,6 +44,12 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+        * Zwraca wszystkie konta mieszkancow widoczne dla administratora.
+     *
+        * @param authentication dane aktualnie zalogowanego uzytkownika
+        * @return posortowana lista mieszkancow
+     */
     @GetMapping("/residents")
     public ResponseEntity<List<AdminUserResponse>> getResidents(Authentication authentication) {
         User currentUser = requireAdmin(authentication);
@@ -52,6 +64,12 @@ public class UserController {
         return ResponseEntity.ok(residents);
     }
 
+    /**
+        * Zwraca wszystkie konta konserwatorow widoczne dla administratora.
+     *
+        * @param authentication dane aktualnie zalogowanego uzytkownika
+        * @return posortowana lista konserwatorow
+     */
     @GetMapping("/maintainers")
     public ResponseEntity<List<AdminUserResponse>> getMaintainers(Authentication authentication) {
         User currentUser = requireAdmin(authentication);
@@ -66,6 +84,13 @@ public class UserController {
         return ResponseEntity.ok(maintainers);
     }
 
+    /**
+        * Tworzy konto mieszkanca lub konserwatora.
+     *
+        * @param authentication dane aktualnie zalogowanego uzytkownika
+        * @param request dane nowego uzytkownika
+        * @return dane utworzonego uzytkownika
+     */
     @PostMapping
     public ResponseEntity<AdminUserResponse> createUser(Authentication authentication, @RequestBody AdminCreateUserRequest request) {
         User currentUser = requireAdmin(authentication);
@@ -94,6 +119,14 @@ public class UserController {
         return ResponseEntity.ok(toAdminUserResponse(savedUser));
     }
 
+    /**
+        * Zmienia stan aktywnosci konta wskazanego uzytkownika.
+     *
+        * @param authentication dane aktualnie zalogowanego uzytkownika
+        * @param userId identyfikator docelowego uzytkownika
+        * @param request docelowy stan aktywnosci
+        * @return dane zaktualizowanego uzytkownika
+     */
     @PatchMapping("/{userId}/active")
     public ResponseEntity<AdminUserResponse> updateUserActiveState(
             Authentication authentication,

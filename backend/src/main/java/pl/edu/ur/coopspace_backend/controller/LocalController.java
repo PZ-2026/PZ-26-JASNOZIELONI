@@ -21,6 +21,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/locals")
 @CrossOrigin(origins = "*")
+/**
+ * Tylko-do-odczytu API administracyjne dla slownika lokali.
+ */
 public class LocalController {
 
     private final LocalRepository localRepository;
@@ -31,6 +34,12 @@ public class LocalController {
         this.userRepository = userRepository;
     }
 
+    /**
+        * Zwraca aktywne lokale posortowane po budynku, numerze lokalu i klatce.
+     *
+        * @param authentication dane aktualnie zalogowanego uzytkownika
+        * @return lista lokali do wyboru w interfejsie
+     */
     @GetMapping
     public ResponseEntity<List<LocalSummaryResponse>> getLocals(Authentication authentication) {
         requireAdmin(authentication);

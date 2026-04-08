@@ -33,6 +33,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/issues")
 @CrossOrigin(origins = "*")
+/**
+ * REST API do obslugi cyklu zycia zgloszen.
+ *
+ * <p>Udostepnia listowanie, tworzenie, zmiane statusu, przypisanie
+ * oraz zarzadzanie zdjeciami zgloszen.</p>
+ */
 public class IssueController {
 
     private final IssueService issueService;
@@ -41,6 +47,9 @@ public class IssueController {
         this.issueService = issueService;
     }
 
+    /**
+        * Zwraca wszystkie zgloszenia widoczne dla administratora z opcjonalnymi filtrami.
+     */
     @GetMapping
     public ResponseEntity<List<IssueResponse>> getAllIssues(
             Authentication authentication,
@@ -50,16 +59,25 @@ public class IssueController {
         return ResponseEntity.ok(issueService.getAllIssues(authentication.getName(), status, localId));
     }
 
+    /**
+        * Zwraca zgloszenia utworzone przez aktualnego uzytkownika.
+     */
     @GetMapping("/my")
     public ResponseEntity<List<IssueResponse>> getMyIssues(Authentication authentication) {
         return ResponseEntity.ok(issueService.getMyIssues(authentication.getName()));
     }
 
+    /**
+        * Zwraca zgloszenia przypisane do aktualnego konserwatora.
+     */
     @GetMapping("/assigned")
     public ResponseEntity<List<IssueResponse>> getAssignedIssues(Authentication authentication) {
         return ResponseEntity.ok(issueService.getAssignedIssues(authentication.getName()));
     }
 
+    /**
+        * Tworzy nowe zgloszenie.
+     */
     @PostMapping
     public ResponseEntity<IssueResponse> createIssue(
             Authentication authentication,
@@ -68,6 +86,9 @@ public class IssueController {
         return ResponseEntity.ok(issueService.createIssue(authentication.getName(), request));
     }
 
+    /**
+        * Zwraca metadane wszystkich zdjec przypisanych do wskazanego zgloszenia.
+     */
     @GetMapping("/{issueId}/images")
     public ResponseEntity<List<IssueImageResponse>> getIssueImages(
             Authentication authentication,
@@ -76,6 +97,9 @@ public class IssueController {
         return ResponseEntity.ok(issueService.getIssueImages(authentication.getName(), issueId));
     }
 
+    /**
+        * Wgrywa pojedynczy plik obrazu i przypina go do istniejacego zgloszenia.
+     */
     @PostMapping(value = "/{issueId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<IssueImageResponse> addIssueImage(
             Authentication authentication,
@@ -85,6 +109,9 @@ public class IssueController {
         return ResponseEntity.ok(issueService.addIssueImage(authentication.getName(), issueId, file));
     }
 
+    /**
+        * Zwraca binarna zawartosc obrazu dla konkretnego zdjecia zgloszenia.
+     */
     @GetMapping("/{issueId}/images/{imageId}")
     public ResponseEntity<Resource> getIssueImage(
             Authentication authentication,
@@ -108,6 +135,9 @@ public class IssueController {
                 .body(resource);
     }
 
+    /**
+        * Usuwa zalacznik obrazu ze zgloszenia.
+     */
     @DeleteMapping("/{issueId}/images/{imageId}")
     public ResponseEntity<Void> deleteIssueImage(
             Authentication authentication,
@@ -118,6 +148,9 @@ public class IssueController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+        * Zmienia status zgloszenia.
+     */
     @PatchMapping("/{issueId}/status")
     public ResponseEntity<IssueResponse> updateIssueStatus(
             Authentication authentication,
@@ -127,6 +160,9 @@ public class IssueController {
         return ResponseEntity.ok(issueService.updateIssueStatus(authentication.getName(), issueId, request));
     }
 
+    /**
+        * Przypisuje zgloszenie do konserwatora.
+     */
     @PatchMapping("/{issueId}/assignee")
     public ResponseEntity<IssueResponse> assignIssue(
             Authentication authentication,
@@ -136,6 +172,9 @@ public class IssueController {
         return ResponseEntity.ok(issueService.assignIssue(authentication.getName(), issueId, request));
     }
 
+    /**
+        * Zwraca dostepne kategorie zgloszen.
+     */
     @GetMapping("/categories")
     public ResponseEntity<List<IssueCategoryResponse>> getIssueCategories() {
         return ResponseEntity.ok(issueService.getCategories());

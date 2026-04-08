@@ -74,5 +74,11 @@ src/main/java/pl/edu/ur/coopspace_backend/
 └── config/
     ├── SecurityConfig.java    # BCrypt Password Encoder
     └── DataInitializer.java   # Inicjalizacja danych testowych
+        
+        
+backend/uploads/
+└── issue-images/
+    ├── 1          # folder z zdjeciami zgloszenia 1
+    └── 2          # folder z zdjeciami zgloszenia 2
 ```
 

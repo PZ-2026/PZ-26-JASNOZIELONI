@@ -38,6 +38,12 @@ import java.util.UUID;
 
 @Service
 @Transactional
+/**
+ * Glowny serwis logiki biznesowej dla obslugi zgloszen.
+ *
+ * <p>Obsluguje operacje cyklu zycia zgloszen, workflow przypisan,
+ * slownik kategorii oraz operacje na zdjeciach z kontrola uprawnien dla danej roli.</p>
+ */
 public class IssueService {
 
     private final IssueRepository issueRepository;
@@ -63,6 +69,9 @@ public class IssueService {
         this.userRepository = userRepository;
     }
 
+    /**
+        * Zwraca zgloszenia utworzone przez aktualnego mieszkanca.
+     */
     @Transactional(readOnly = true)
     public List<IssueResponse> getMyIssues(String currentUserEmail) {
         User currentUser = getCurrentUser(currentUserEmail);
@@ -73,6 +82,9 @@ public class IssueService {
                 .toList();
     }
 
+    /**
+        * Zwraca zgloszenia przypisane do aktualnego konserwatora.
+     */
     @Transactional(readOnly = true)
     public List<IssueResponse> getAssignedIssues(String currentUserEmail) {
         User currentUser = getCurrentUser(currentUserEmail);
@@ -83,6 +95,9 @@ public class IssueService {
                 .toList();
     }
 
+    /**
+        * Zwraca wszystkie zgloszenia w kontekście administratora z opcjonalnymi filtrami.
+     */
     @Transactional(readOnly = true)
     public List<IssueResponse> getAllIssues(String currentUserEmail, IssueStatus status, Integer localId) {
         User currentUser = getCurrentUser(currentUserEmail);
@@ -99,6 +114,9 @@ public class IssueService {
                 .toList();
     }
 
+    /**
+        * Tworzy nowe zgloszenie dla biezacego kontekstu uzytkownika.
+     */
     public IssueResponse createIssue(String currentUserEmail, IssueCreateRequest request) {
         User currentUser = getCurrentUser(currentUserEmail);
 
@@ -127,6 +145,9 @@ public class IssueService {
         return toResponse(savedIssue);
     }
 
+    /**
+        * Aktualizuje status zgloszenia po sprawdzeniu uprawnien modyfikujacego.
+     */
     public IssueResponse updateIssueStatus(String currentUserEmail, Integer issueId, IssueStatusUpdateRequest request) {
         User currentUser = getCurrentUser(currentUserEmail);
         Issue issue = getIssueOrThrow(issueId);
@@ -152,6 +173,9 @@ public class IssueService {
         return toResponse(savedIssue);
     }
 
+    /**
+        * Przypisuje zgloszenie do konserwatora i w razie potrzeby przechodzi do statusu IN_PROGRESS.
+     */
     public IssueResponse assignIssue(String currentUserEmail, Integer issueId, IssueAssignRequest request) {
         User currentUser = getCurrentUser(currentUserEmail);
         if (currentUser.getRole() != UserRole.ADMIN) {
@@ -188,6 +212,9 @@ public class IssueService {
         return toResponse(issueRepository.save(issue));
     }
 
+    /**
+        * Zwraca dostepne kategorie zgloszen.
+     */
     @Transactional(readOnly = true)
     public List<IssueCategoryResponse> getCategories() {
         return issueCategoryRepository.findAll()
@@ -197,6 +224,9 @@ public class IssueService {
                 .toList();
     }
 
+    /**
+        * Zwraca metadane zdjec przypisanych do zgloszenia.
+     */
     @Transactional(readOnly = true)
     public List<IssueImageResponse> getIssueImages(String currentUserEmail, Integer issueId) {
         User currentUser = getCurrentUser(currentUserEmail);
@@ -210,6 +240,9 @@ public class IssueService {
                 .toList();
     }
 
+    /**
+        * Zapisuje wgrane zdjecie i laczy je ze zgloszeniem.
+     */
     public IssueImageResponse addIssueImage(String currentUserEmail, Integer issueId, MultipartFile file) {
         User currentUser = getCurrentUser(currentUserEmail);
         Issue issue = getIssueOrThrow(issueId);
@@ -244,6 +277,9 @@ public class IssueService {
         return toImageResponse(savedImage);
     }
 
+    /**
+        * Zwraca metadane zdjecia po sprawdzeniu uprawnien dostepu do zgloszenia.
+     */
     public IssueImage getIssueImage(String currentUserEmail, Integer issueId, Integer imageId) {
         User currentUser = getCurrentUser(currentUserEmail);
         Issue issue = getIssueOrThrow(issueId);
@@ -259,6 +295,9 @@ public class IssueService {
         return image;
     }
 
+    /**
+        * Usuwa metadane zdjecia i powiazany plik z dysku.
+     */
     public void deleteIssueImage(String currentUserEmail, Integer issueId, Integer imageId) {
         IssueImage image = getIssueImage(currentUserEmail, issueId, imageId);
         Path path = resolveIssueImagePath(issueId, image.getFilePath());
@@ -281,6 +320,9 @@ public class IssueService {
         }
     }
 
+    /**
+        * Wyznacza fizyczna sciezke pliku dla zdjecia zgloszenia.
+     */
     public Path getIssueImagePath(String currentUserEmail, Integer issueId, Integer imageId) {
         IssueImage image = getIssueImage(currentUserEmail, issueId, imageId);
         return resolveIssueImagePath(issueId, image.getFilePath());
