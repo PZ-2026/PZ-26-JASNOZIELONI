@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface LocalRepository extends JpaRepository<Local, Integer> {
     List<Local> findByBuildingId(Integer buildingId);
+    List<Local> findByDeletedAtIsNull();
 }

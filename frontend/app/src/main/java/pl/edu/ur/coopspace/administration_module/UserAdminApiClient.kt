@@ -21,6 +21,18 @@ data class AdminUserDto(
     val isActive: Boolean
 )
 
+data class LocalDto(
+    val id: Int,
+    val buildingId: Int,
+    val number: String,
+    val staircase: String?
+) {
+    fun displayLabel(): String {
+        val staircasePart = staircase?.takeIf { it.isNotBlank() }?.let { " | kl. $it" }.orEmpty()
+        return "Budynek $buildingId | Lokal $number$staircasePart"
+    }
+}
+
 object UserAdminApiClient {
     suspend fun getResidents(token: String): Result<List<AdminUserDto>> = withContext(Dispatchers.IO) {
         runCatching {
@@ -33,6 +45,27 @@ object UserAdminApiClient {
         runCatching {
             val response = request("GET", "/api/users/maintainers", token)
             parseUsers(response)
+        }
+    }
+
+    suspend fun getLocals(token: String): Result<List<LocalDto>> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response = request("GET", "/api/locals", token)
+            val array = JSONArray(response)
+
+            buildList {
+                for (index in 0 until array.length()) {
+                    val item = array.getJSONObject(index)
+                    add(
+                        LocalDto(
+                            id = item.getInt("id"),
+                            buildingId = item.getInt("buildingId"),
+                            number = item.optString("number", ""),
+                            staircase = item.optStringOrNull("staircase")
+                        )
+                    )
+                }
+            }
         }
     }
 

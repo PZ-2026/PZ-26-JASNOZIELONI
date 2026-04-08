@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
@@ -235,8 +236,16 @@ fun AdminGenerateStatisticRaportScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Divider(modifier = Modifier.fillMaxHeight().width(3.dp), color = Color(0xFF6750A4))
-                            Divider(modifier = Modifier.fillMaxHeight().width(3.dp), color = Color(0xFF6750A4))
+                            HorizontalDivider(
+                                modifier = Modifier.fillMaxHeight().width(3.dp),
+                                thickness = DividerDefaults.Thickness,
+                                color = Color(0xFF6750A4)
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.fillMaxHeight().width(3.dp),
+                                thickness = DividerDefaults.Thickness,
+                                color = Color(0xFF6750A4)
+                            )
                         }
                     }
                 }

@@ -205,7 +205,7 @@ fun AdminReportsInProgressScreen(
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusFilterExpanded)
                     },
                     modifier = Modifier
-                        .menuAnchor()
+                        .menuAnchor(type = MenuAnchorType.PrimaryEditable, enabled = true)
                         .fillMaxWidth()
                 )
 

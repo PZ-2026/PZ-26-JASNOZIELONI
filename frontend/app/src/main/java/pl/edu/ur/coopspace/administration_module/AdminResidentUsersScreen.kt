@@ -36,6 +36,9 @@ fun AdminResidentUsersScreen(
     var residents by remember { mutableStateOf<List<AdminUserDto>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    var locals by remember { mutableStateOf<List<LocalDto>>(emptyList()) }
+    var isLoadingLocals by remember { mutableStateOf(false) }
+    var localDropdownExpanded by remember { mutableStateOf(false) }
 
     var showAddDialog by remember { mutableStateOf(false) }
     var firstName by remember { mutableStateOf("") }
@@ -43,7 +46,7 @@ fun AdminResidentUsersScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
-    var localIdText by remember { mutableStateOf("") }
+    var selectedLocal by remember { mutableStateOf<LocalDto?>(null) }
     var isCreating by remember { mutableStateOf(false) }
     var updatingUserId by remember { mutableStateOf<Int?>(null) }
 
@@ -82,8 +85,25 @@ fun AdminResidentUsersScreen(
         updatingUserId = null
     }
 
+    suspend fun loadLocals() {
+        isLoadingLocals = true
+        val token = AuthSessionStore.getToken(context)
+        if (token.isNullOrBlank()) {
+            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            isLoadingLocals = false
+            return
+        }
+
+        UserAdminApiClient.getLocals(token)
+            .onSuccess { locals = it }
+            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udalo sie pobrac listy lokali" }
+
+        isLoadingLocals = false
+    }
+
     LaunchedEffect(Unit) {
         loadResidents()
+        loadLocals()
     }
 
     val filteredResidents = residents.filter { resident ->
@@ -108,7 +128,45 @@ fun AdminResidentUsersScreen(
                     OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") }, singleLine = true)
                     OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Haslo") }, singleLine = true)
                     OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Telefon") }, singleLine = true)
-                    OutlinedTextField(value = localIdText, onValueChange = { localIdText = it.filter(Char::isDigit) }, label = { Text("Numer lokalu (ID)") }, singleLine = true)
+
+                    ExposedDropdownMenuBox(
+                        expanded = localDropdownExpanded,
+                        onExpandedChange = { localDropdownExpanded = !localDropdownExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedLocal?.displayLabel().orEmpty(),
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Lokal") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = localDropdownExpanded) },
+                            modifier = Modifier
+                                .menuAnchor(type = MenuAnchorType.PrimaryEditable, enabled = true)
+                                .fillMaxWidth()
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = localDropdownExpanded,
+                            onDismissRequest = { localDropdownExpanded = false }
+                        ) {
+                            if (isLoadingLocals) {
+                                DropdownMenuItem(
+                                    text = { Text("Ladowanie lokali...") },
+                                    onClick = {},
+                                    enabled = false
+                                )
+                            } else {
+                                locals.forEach { local ->
+                                    DropdownMenuItem(
+                                        text = { Text(local.displayLabel()) },
+                                        onClick = {
+                                            selectedLocal = local
+                                            localDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             },
             confirmButton = {
@@ -116,9 +174,9 @@ fun AdminResidentUsersScreen(
                     onClick = {
                         if (isCreating) return@Button
 
-                        val localId = localIdText.toIntOrNull()
+                        val localId = selectedLocal?.id
                         if (firstName.isBlank() || lastName.isBlank() || email.isBlank() || password.isBlank() || localId == null) {
-                            errorMessage = "Uzupelnij wszystkie wymagane pola i poprawny numer lokalu"
+                            errorMessage = "Uzupelnij wszystkie wymagane pola i wybierz lokal"
                             return@Button
                         }
 
@@ -146,7 +204,7 @@ fun AdminResidentUsersScreen(
                                 email = ""
                                 password = ""
                                 phone = ""
-                                localIdText = ""
+                                selectedLocal = null
                                 loadResidents()
                             }.onFailure { throwable ->
                                 errorMessage = throwable.message ?: "Nie udalo sie utworzyc konta mieszkanca"
