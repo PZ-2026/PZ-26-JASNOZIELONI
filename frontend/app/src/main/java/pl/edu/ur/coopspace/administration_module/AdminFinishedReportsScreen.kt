@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Menu
@@ -17,19 +18,60 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import pl.edu.ur.coopspace.auth.AuthSessionStore
+import pl.edu.ur.coopspace.ticket_module.IssueApiClient
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminFinishedReportsScreen(
     onNavigateBack: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onTicketClick: (Int) -> Unit
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var searchQuery by remember { mutableStateOf("") }
+    var localFilterText by remember { mutableStateOf("") }
+    var reports by remember { mutableStateOf<List<Pair<Int, String>>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    val mockReports = List(6) { "Typ Zgłoszenia | Adres" }
+    suspend fun fetchReports(localId: Int?) {
+        isLoading = true
+        errorMessage = null
+
+        val token = AuthSessionStore.getToken(context)
+        if (token.isNullOrBlank()) {
+            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            isLoading = false
+            return
+        }
+
+        IssueApiClient.getAllIssues(token, status = "CLOSED", localId = localId)
+            .onSuccess { issues ->
+                reports = issues.map { issue ->
+                    issue.id to "${issue.title} | Lokal ${issue.localId ?: "-"}"
+                }
+            }
+            .onFailure { throwable ->
+                errorMessage = throwable.message ?: "Nie udalo sie pobrac zakonczonych zgloszen"
+            }
+
+        isLoading = false
+    }
+
+    LaunchedEffect(Unit) {
+        fetchReports(localId = null)
+    }
+
+    val filteredReports = reports.filter {
+        searchQuery.isBlank() || it.second.contains(searchQuery, ignoreCase = true)
+    }
 
     Column(
         modifier = Modifier
@@ -131,55 +173,93 @@ fun AdminFinishedReportsScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Kontener na listę połączonych wierszy
-        Card(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(6.dp),
-            border = BorderStroke(1.dp, Color.Black), // Zewnętrzna ramka
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF90D18F) // Pastelowy, jasny zielony
-            )
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                mockReports.forEachIndexed { index, report ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { /* TODO: Szczegóły zgłoszenia */ }
-                            .padding(horizontal = 24.dp, vertical = 18.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = report,
-                            fontSize = 15.sp,
-                            color = Color.Black.copy(alpha = 0.8f)
-                        )
-                        
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                value = localFilterText,
+                onValueChange = { localFilterText = it.filter(Char::isDigit) },
+                label = { Text("Lokal") },
+                singleLine = true,
+                modifier = Modifier.width(140.dp)
+            )
+
+            Button(
+                onClick = {
+                    val localParam = localFilterText.takeIf { it.isNotBlank() }?.toIntOrNull()
+                    if (localFilterText.isNotBlank() && localParam == null) {
+                        errorMessage = "Numer lokalu musi byc liczba"
+                        return@Button
+                    }
+
+                    coroutineScope.launch {
+                        fetchReports(localId = localParam)
+                    }
+                }
+            ) {
+                Text("Filtruj")
+            }
+        }
+
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else if (errorMessage != null) {
+            Text(
+                text = errorMessage!!,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 13.sp
+            )
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(6.dp),
+                border = BorderStroke(1.dp, Color.Black),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF90D18F))
+            ) {
+                Column {
+                    filteredReports.forEachIndexed { index, report ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onTicketClick(report.first) }
+                                .padding(horizontal = 24.dp, vertical = 18.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Text(
-                                text = "Szczegóły",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
+                                text = report.second,
+                                fontSize = 15.sp,
                                 color = Color.Black.copy(alpha = 0.8f)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowRight,
-                                contentDescription = "Więcej",
-                                tint = Color.Black.copy(alpha = 0.8f),
-                                modifier = Modifier.size(16.dp)
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Szczegoly",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black.copy(alpha = 0.8f)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = "Wiecej",
+                                    tint = Color.Black.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+
+                        if (index < filteredReports.size - 1) {
+                            HorizontalDivider(
+                                modifier = Modifier.fillMaxWidth(),
+                                thickness = 1.dp,
+                                color = Color.Black
                             )
                         }
-                    }
-                    
-                    // Separator miedzy elementami (ostatni element go nie ma)
-                    if (index < mockReports.size - 1) {
-                        HorizontalDivider(
-                            modifier = Modifier.fillMaxWidth(),
-                            thickness = 1.dp,
-                            color = Color.Black // Cienka czarna linia
-                        )
                     }
                 }
             }

@@ -10,10 +10,23 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.launch
+import pl.edu.ur.coopspace.auth.AuthSessionStore
 
 // 1. Pseudo-model danych dla zgłoszenia
 data class Ticket(
@@ -23,16 +36,6 @@ data class Ticket(
     val status: String // To posłuży jako "Overline" z makiety
 )
 
-// Generujemy 8 przykładowych zgłoszeń
-val dummyTickets = List(8) { index ->
-    Ticket(
-        id = index + 1,
-        title = "Zgłoszenie ${index + 1}",
-        description = "Krótki opis zgłoszenia numer ${index + 1}",
-        status = if (index % 2 == 0) "W trakcie" else "Nowe" // Zmienne statusy dla urozmaicenia
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResidentTicketsScreen(
@@ -40,6 +43,60 @@ fun ResidentTicketsScreen(
     onAddNewTicketClick: () -> Unit, // Akcja po kliknięciu "Dodaj nowe zgłoszenie"
     onLogout: () -> Unit // Dodajemy akcję wylogowania
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val coroutineScope = rememberCoroutineScope()
+    var tickets by remember { mutableStateOf<List<Ticket>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    suspend fun fetchTickets() {
+        isLoading = true
+        errorMessage = null
+
+        val token = AuthSessionStore.getToken(context)
+        if (token.isNullOrBlank()) {
+            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            isLoading = false
+            return
+        }
+
+        val result = IssueApiClient.getMyIssues(token)
+        result.onSuccess { issues ->
+            tickets = issues.map { issue ->
+                Ticket(
+                    id = issue.id,
+                    title = issue.title,
+                    description = issue.description,
+                    status = issue.status.toUiStatus()
+                )
+            }
+        }.onFailure { throwable ->
+            errorMessage = throwable.message ?: "Nie udalo sie pobrac listy zgloszen"
+        }
+
+        isLoading = false
+    }
+
+    LaunchedEffect(Unit) {
+        fetchTickets()
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                coroutineScope.launch {
+                    fetchTickets()
+                }
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     // Scaffold to "rusztowanie", które idealnie nadaje się do ekranów z pływającym przyciskiem (FAB)
     Scaffold(
         topBar = {
@@ -76,17 +133,46 @@ fun ResidentTicketsScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        // Lista zgłoszeń
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues) // Scaffold podaje padding, żeby lista nie wjechała pod przycisk
-        ) {
-            items(dummyTickets) { ticket ->
-                TicketListItem(ticket = ticket, onClick = { onTicketClick(ticket.id) })
-                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant) // Linia oddzielająca
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (errorMessage != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(24.dp),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                items(tickets) { ticket ->
+                    TicketListItem(ticket = ticket, onClick = { onTicketClick(ticket.id) })
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                }
             }
         }
+    }
+}
+
+fun String.toUiStatus(): String {
+    return when (this.uppercase()) {
+        "OPEN" -> "Nowe"
+        "IN_PROGRESS" -> "W trakcie"
+        "CLOSED" -> "Zamkniete"
+        else -> this
     }
 }
 

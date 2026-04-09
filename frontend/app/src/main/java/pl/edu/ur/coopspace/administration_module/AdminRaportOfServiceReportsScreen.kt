@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
@@ -230,8 +231,16 @@ fun AdminRaportOfServiceReportsScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Divider(modifier = Modifier.fillMaxHeight().width(3.dp), color = Color(0xFF6750A4))
-                            Divider(modifier = Modifier.fillMaxHeight().width(3.dp), color = Color(0xFF6750A4))
+                            HorizontalDivider(
+                                modifier = Modifier.fillMaxHeight().width(3.dp),
+                                thickness = DividerDefaults.Thickness,
+                                color = Color(0xFF6750A4)
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.fillMaxHeight().width(3.dp),
+                                thickness = DividerDefaults.Thickness,
+                                color = Color(0xFF6750A4)
+                            )
                         }
                     }
                 }
@@ -333,7 +342,7 @@ fun SelectionBox(
                     )
                 }
 
-                Divider(color = borderColor.copy(alpha = 0.5f), thickness = 1.dp)
+                HorizontalDivider(thickness = 1.dp, color = borderColor.copy(alpha = 0.5f))
 
                 // Lista opcji
                 Column(

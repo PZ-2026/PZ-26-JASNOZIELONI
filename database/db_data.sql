@@ -83,10 +83,10 @@ VALUES
 -- ISSUE IMAGES
 INSERT INTO issue_image (issue_id, file_path)
 VALUES
-(1, '/images/issue1.jpg'),
-(2, '/images/issue2.jpg'),
-(4, '/images/issue4.jpg'),
-(5, '/images/issue5.jpg');
+(1, 'issue1.png'),
+(2, 'issue2.png'),
+(4, 'issue4.png'),
+(5, 'issue5.png');
 
 -- CHARGE ITEM TYPES
 INSERT INTO charge_item_type (name)

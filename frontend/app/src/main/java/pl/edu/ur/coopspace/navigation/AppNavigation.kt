@@ -1,6 +1,8 @@
 package pl.edu.ur.coopspace.navigation
 
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -19,6 +21,8 @@ import pl.edu.ur.coopspace.administration_module.AdminPaymentSettingsScreen
 import pl.edu.ur.coopspace.administration_module.AdminRaportsScreen
 import pl.edu.ur.coopspace.administration_module.AdminRaportOfServiceReportsScreen
 import pl.edu.ur.coopspace.administration_module.AdminGenerateStatisticRaportScreen
+import pl.edu.ur.coopspace.administration_module.AdminIssueDetailsScreen
+import pl.edu.ur.coopspace.auth.AuthSessionStore
 import pl.edu.ur.coopspace.registration_module.AdminContactScreen
 import pl.edu.ur.coopspace.registration_module.LoginScreen
 import pl.edu.ur.coopspace.registration_module.UserRole
@@ -27,11 +31,23 @@ import pl.edu.ur.coopspace.ticket_module.ServiceTicketsScreen
 
 @Composable
 fun CoopSpaceApp() {
+    val context = LocalContext.current
     val navController = rememberNavController()
+    val startDestination = remember {
+        val token = AuthSessionStore.getToken(context)
+        val role = AuthSessionStore.getRole(context)
+
+        if (!token.isNullOrBlank() && !AuthSessionStore.isTokenValid(token)) {
+            AuthSessionStore.clearSession(context)
+            "login"
+        } else {
+            resolveStartDestination(token = token, role = role)
+        }
+    }
 
     NavHost(
         navController = navController,
-        startDestination = "login"
+        startDestination = startDestination
     ) {
         composable("login") {
             LoginScreen(
@@ -65,6 +81,7 @@ fun CoopSpaceApp() {
         composable("admin_home") {
             AdminHomeScreen(
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -93,6 +110,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true } // Or popUpTo("login") depending on architecture
                     }
@@ -115,6 +133,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -128,6 +147,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -141,6 +161,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -154,6 +175,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -173,6 +195,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -186,6 +209,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -199,6 +223,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -218,9 +243,13 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
+                },
+                onTicketClick = { ticketId ->
+                    navController.navigate("admin_issue_details/$ticketId")
                 }
             )
         }
@@ -231,6 +260,27 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("admin_home") { inclusive = true }
+                    }
+                },
+                onTicketClick = { ticketId ->
+                    navController.navigate("admin_issue_details/$ticketId")
+                }
+            )
+        }
+
+        composable(
+            "admin_issue_details/{ticketId}",
+            arguments = listOf(androidx.navigation.navArgument("ticketId") { type = androidx.navigation.NavType.IntType })
+        ) { backStackEntry ->
+            val ticketId = backStackEntry.arguments?.getInt("ticketId") ?: 1
+            AdminIssueDetailsScreen(
+                ticketId = ticketId,
+                onBackClick = { navController.popBackStack() },
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -244,6 +294,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -257,6 +308,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -279,6 +331,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -292,6 +345,7 @@ fun CoopSpaceApp() {
                     navController.popBackStack()
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("admin_home") { inclusive = true }
                     }
@@ -308,6 +362,7 @@ fun CoopSpaceApp() {
                     navController.navigate("resident_new_ticket")
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("resident_tickets") { inclusive = true }
                     }
@@ -329,6 +384,7 @@ fun CoopSpaceApp() {
                     navController.navigate("service_ticket_details/$ticketId")
                 },
                 onLogout = {
+                    AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
                         popUpTo("service_tickets") { inclusive = true }
                     }
@@ -348,5 +404,18 @@ fun CoopSpaceApp() {
                 }
             )
         }
+    }
+}
+
+private fun resolveStartDestination(token: String?, role: String?): String {
+    if (token.isNullOrBlank()) {
+        return "login"
+    }
+
+    return when (role?.uppercase()) {
+        "ADMIN" -> "admin_home"
+        "RESIDENT" -> "resident_tickets"
+        "MAINTAINER" -> "service_tickets"
+        else -> "login"
     }
 }
