@@ -1,6 +1,14 @@
 # Baza danych
 
 Wykorzystywaną bazą danych jest PostgreSQL w wersji >= 16.
+Postawienie bazy danych w kontenerze Docker'a zostało opisane w [readme w folderze backend](../backend/README.md).
+Bazę danych można postawić również ręcznie wykorzystując opisane tutaj [skrypty SQL](#skrypty-sql).
+
+## Diagram ERD
+
+![diagramERD](./JASNOZIELONI-ERD.png)
+
+## Skrypty SQL
 
 W tym folderze znajdują się dwa skrypty w SQL.
 
