@@ -1,0 +1,19 @@
+package pl.edu.ur.coopspace_backend.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class DocumentResponse {
+    private Integer id;
+    private String title;
+    private String filePath;
+    private Integer uploadedBy;
+    private LocalDateTime createdAt;
+}

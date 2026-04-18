@@ -10,6 +10,7 @@ import pl.edu.ur.coopspace.administration_module.AdminHomeScreen
 import pl.edu.ur.coopspace.administration_module.AdminAnnouncementScreen
 import pl.edu.ur.coopspace.administration_module.AdminAddAnnouncementScreen
 import pl.edu.ur.coopspace.administration_module.AdminViewAnnouncementHistoryScreen
+import pl.edu.ur.coopspace.administration_module.AdminAnnouncementDetailsScreen
 import pl.edu.ur.coopspace.administration_module.AdminViewAnnouncementDocumentsScreen
 import pl.edu.ur.coopspace.administration_module.AdminUsersScreen
 import pl.edu.ur.coopspace.administration_module.AdminResidentUsersScreen
@@ -143,6 +144,28 @@ fun CoopSpaceApp() {
 
         composable("admin_history_announcement") {
             AdminViewAnnouncementHistoryScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("admin_home") { inclusive = true }
+                    }
+                },
+                onAnnouncementClick = { id ->
+                    navController.navigate("admin_announcement_details/$id")
+                }
+            )
+        }
+
+        composable(
+            "admin_announcement_details/{announcementId}",
+            arguments = listOf(androidx.navigation.navArgument("announcementId") { type = androidx.navigation.NavType.IntType })
+        ) { backStackEntry ->
+            val announcementId = backStackEntry.arguments?.getInt("announcementId") ?: 1
+            AdminAnnouncementDetailsScreen(
+                announcementId = announcementId,
                 onNavigateBack = {
                     navController.popBackStack()
                 },

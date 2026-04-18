@@ -1,5 +1,8 @@
 package pl.edu.ur.coopspace.administration_module
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,16 +20,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class DocumentItem(
-    val name: String,
-    val dateSize: String,
-    val isSelected: Boolean = false
-)
+import kotlinx.coroutines.launch
+import pl.edu.ur.coopspace.auth.AuthSessionStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,18 +34,52 @@ fun AdminViewAnnouncementDocumentsScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit
 ) {
-    val documents = listOf(
-        DocumentItem("A Summer Sale.docx", "Jun 21, 2021 12:36 PM • 243.3 KB"),
-        DocumentItem("Badge Approval.svg", "Aug 29, 2018 7:25 PM • 4.92 KB"),
-        DocumentItem("Books.tiff", "Dec 24, 2019 11:13 AM • 602.7 KB"),
-        DocumentItem("Circuit Design.pptx", "Jun 21, 2021 10:09 AM • 458 KB"),
-        DocumentItem("Exploring the Cosmos.pdf", "Jun 22, 2021 10:20 AM • 1.08 MB"),
-        DocumentItem("Global Outlook.pdf", "Jun 21, 2021 1:14 PM • 18.93 MB", isSelected = true),
-        DocumentItem("Hall of Fame.pptx", "Jun 21, 2021 10:15 AM • 43.92 KB"),
-        DocumentItem("Mt Fuji Wide.jpeg", "Nov 5, 2020 9:56 AM • 5.2 MB"),
-        DocumentItem("San Francisco Bridge.jpeg", "Nov 5, 2020 9:56 AM • 7.12 MB"),
-        DocumentItem("SDG7 Tracking Progress.pdf", "Jun 21, 2021 1:15 PM • 27.38 MB")
-    )
+    val context = LocalContext.current
+    val token = remember { AuthSessionStore.getToken(context) }
+    val scope = rememberCoroutineScope()
+    
+    var documents by remember { mutableStateOf<List<DocumentDto>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    fun refreshDocuments() {
+        if (token != null) {
+            scope.launch {
+                isLoading = true
+                AnnouncementApiClient.getDocuments(token)
+                    .onSuccess { data ->
+                        documents = data
+                        isLoading = false
+                    }
+                    .onFailure {
+                        isLoading = false
+                        Toast.makeText(context, "Błąd pobierania dokumentów", Toast.LENGTH_SHORT).show()
+                    }
+            }
+        } else {
+            isLoading = false
+        }
+    }
+
+    LaunchedEffect(token) {
+        refreshDocuments()
+    }
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null && token != null) {
+            scope.launch {
+                isLoading = true
+                AnnouncementApiClient.uploadDocument(token, context, uri)
+                    .onSuccess {
+                        Toast.makeText(context, "Wgrano plik pomyślnie", Toast.LENGTH_SHORT).show()
+                        refreshDocuments()
+                    }
+                    .onFailure {
+                        isLoading = false
+                        Toast.makeText(context, "Błąd podczas wgrywania pliku", Toast.LENGTH_SHORT).show()
+                    }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -115,62 +149,73 @@ fun AdminViewAnnouncementDocumentsScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         // Lista dokumentów
-        LazyColumn(
-            modifier = Modifier.weight(1f)
-        ) {
-            items(documents.size) { index ->
-                val doc = documents[index]
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(if (doc.isSelected) Color.LightGray.copy(alpha = 0.4f) else Color.Transparent)
-                        .clickable { /* Wybór elementu */ }
-                        .padding(horizontal = 8.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Ikona pliku
-                    Box(
+        if (isLoading) {
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else if (documents.isEmpty()) {
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Text(text = "Brak dokumentów", color = Color.Gray)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
+                items(documents.size) { index ->
+                    val doc = documents[index]
+                    Row(
                         modifier = Modifier
-                            .size(40.dp)
-                            .background(Color.Transparent, RoundedCornerShape(8.dp)),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .background(Color.Transparent)
+                            .clickable { /* Wybór elementu */ }
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
-                            contentDescription = "Plik",
-                            tint = Color.Gray,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
+                        // Ikona pliku
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color.Transparent, RoundedCornerShape(8.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
+                                contentDescription = "Plik",
+                                tint = Color.Gray,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
 
-                    // Nazwa pliku i dane
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = doc.name,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.Black.copy(alpha = 0.8f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = doc.dateSize,
-                            fontSize = 11.sp,
-                            color = Color.Gray,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+                        // Nazwa pliku i dane
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = doc.title,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.Black.copy(alpha = 0.8f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            val dateString = doc.createdAt.substringBefore("T")
+                            Text(
+                                text = "Dodano: $dateString",
+                                fontSize = 11.sp,
+                                color = Color.Gray,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
 
-                    // Przycisk "Więcej" (opcje 3 kropki)
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Opcje",
-                            tint = Color.DarkGray
-                        )
+                        // Przycisk "Więcej" (opcje 3 kropki)
+                        IconButton(onClick = { /* TODO */ }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Opcje",
+                                tint = Color.DarkGray
+                            )
+                        }
                     }
                 }
             }
@@ -185,7 +230,7 @@ fun AdminViewAnnouncementDocumentsScreen(
             // Przycisk Dodaj Nowy (Wycentrowany)
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 OutlinedButton(
-                    onClick = { /* TODO: Wybór nowego dokumentu */ },
+                    onClick = { launcher.launch("*/*") },
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
                     ),
