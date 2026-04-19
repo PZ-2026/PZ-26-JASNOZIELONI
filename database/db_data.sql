@@ -99,8 +99,8 @@ VALUES
 -- CHARGES
 INSERT INTO charge (local_id, period_start, period_end, total_amount, status, created_by)
 VALUES
-(1, '2025-01-01', '2025-01-31', 500, 'UNPAID', 1),
-(2, '2025-01-01', '2025-01-31', 650, 'PARTIALLY_PAID', 1),
+(1, '2025-01-01', '2027-01-31', 500, 'UNPAID', 1),
+(2, '2025-01-01', '2027-01-31', 650, 'PARTIALLY_PAID', 1),
 (3, '2025-01-01', '2025-01-31', 430, 'PAID', 10),
 (4, '2025-01-01', '2025-01-31', 720, 'UNPAID', 1),
 (5, '2025-01-01', '2025-01-31', 590, 'PARTIALLY_PAID', 10);

@@ -6,7 +6,10 @@ import pl.edu.ur.coopspace_backend.entity.ChargeItem;
 
 import java.util.List;
 
+import java.util.Optional;
+
 @Repository
 public interface ChargeItemRepository extends JpaRepository<ChargeItem, Integer> {
     List<ChargeItem> findByChargeId(Integer chargeId);
+    Optional<ChargeItem> findFirstByTypeIdOrderByIdDesc(Integer typeId);
 }

@@ -16,6 +16,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+
+import kotlinx.coroutines.launch
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,11 +29,29 @@ fun AdminPaymentSettingsScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var isLoading by remember { mutableStateOf(false) }
+
     // Stany dla pól tekstowych
-    var rentValue by remember { mutableStateOf("Input") }
-    var waterValue by remember { mutableStateOf("Input") }
-    var electricityValue by remember { mutableStateOf("Input") }
-    var gasValue by remember { mutableStateOf("Input") }
+    var rentValue by remember { mutableStateOf("") }
+    var waterValue by remember { mutableStateOf("") }
+    var electricityValue by remember { mutableStateOf("") }
+    var gasValue by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        isLoading = true
+        PaymentApiClient.getRates(context).onSuccess { rates ->
+            rentValue = rates.rentRate
+            waterValue = rates.waterRate
+            electricityValue = rates.electricityRate
+            gasValue = rates.gasRate
+            isLoading = false
+        }.onFailure { error ->
+            isLoading = false
+            Toast.makeText(context, error.message ?: "Błąd podczas pobierania stawek", Toast.LENGTH_LONG).show()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -139,12 +163,31 @@ fun AdminPaymentSettingsScreen(
             }
 
             Button(
-                onClick = { /* TODO: Zapisz logikę */ },
+                onClick = {
+                    if (isLoading) return@Button
+                    isLoading = true
+                    coroutineScope.launch {
+                        PaymentApiClient.updateRates(
+                            context = context,
+                            rentRate = rentValue,
+                            waterRate = waterValue,
+                            electricityRate = electricityValue,
+                            gasRate = gasValue
+                        ).onSuccess {
+                            isLoading = false
+                            Toast.makeText(context, "Stawki zostały zapisane pomyślnie", Toast.LENGTH_SHORT).show()
+                            onNavigateBack()
+                        }.onFailure { error ->
+                            isLoading = false
+                            Toast.makeText(context, error.message ?: "Błąd zapisu", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF009922)),
                 shape = RoundedCornerShape(50),
                 contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
             ) {
-                Text(text = "Zapisz", color = Color.White, fontSize = 14.sp)
+                Text(text = if (isLoading) "Zapisywanie..." else "Zapisz", color = Color.White, fontSize = 14.sp)
             }
         }
 
@@ -189,6 +232,7 @@ fun PaymentInputField(
                     )
                 }
             },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true
         )
     }
