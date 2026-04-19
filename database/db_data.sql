@@ -139,8 +139,8 @@ VALUES
 -- DOCUMENTS
 INSERT INTO document (title, file_path, uploaded_by)
 VALUES
-('Regulamin', '/docs/regulamin.pdf', 1),
-('Harmonogram opłat', '/docs/harmonogram-oplat.pdf', 10);
+('regulamin.pdf', 'regulamin.pdf', 1),
+('harmonogram-oplat.pdf', 'harmonogram-oplat.pdf', 10);
 
 -- AUDIT LOG
 INSERT INTO audit_log (user_id, action_text, entity_type, entity_id)

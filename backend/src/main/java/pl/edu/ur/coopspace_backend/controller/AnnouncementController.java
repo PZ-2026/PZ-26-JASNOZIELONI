@@ -20,7 +20,6 @@ import pl.edu.ur.coopspace_backend.repository.UserRepository;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -157,48 +156,40 @@ public class AnnouncementController {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Plik jest pusty");
         }
 
+        String originalFilename = file.getOriginalFilename();
+        String extension = extractExtension(originalFilename);
+        String safeFileName = UUID.randomUUID() + extension;
+
+        Path targetDirectory = getDocumentDirectory();
+        Path targetPath = targetDirectory.resolve(safeFileName).normalize();
+
         try {
-            Path uploadDir = Paths.get("backend", "uploads", "docs");
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
+            Files.createDirectories(targetPath.getParent());
+            try (java.io.InputStream inputStream = file.getInputStream()) {
+                Files.copy(inputStream, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             }
-
-            String originalFilename = file.getOriginalFilename();
-            if (originalFilename == null) {
-                originalFilename = "document";
-            }
-            
-            String extension = "";
-            int extIndex = originalFilename.lastIndexOf('.');
-            if (extIndex > 0) {
-                extension = originalFilename.substring(extIndex);
-            }
-
-            String newFilename = UUID.randomUUID().toString() + extension;
-            Path filePath = uploadDir.resolve(newFilename);
-            Files.copy(file.getInputStream(), filePath);
-
-            Document document = Document.builder()
-                    .title(originalFilename)
-                    .filePath(filePath.toString().replace('\\', '/'))
-                    .uploadedBy(currentUser.getId())
-                    .createdAt(LocalDateTime.now())
-                    .build();
-
-            Document savedDocument = documentRepository.save(document);
-
-            DocumentResponse response = DocumentResponse.builder()
-                    .id(savedDocument.getId())
-                    .title(savedDocument.getTitle())
-                    .filePath(savedDocument.getFilePath())
-                    .uploadedBy(savedDocument.getUploadedBy())
-                    .createdAt(savedDocument.getCreatedAt())
-                    .build();
-
-            return ResponseEntity.ok(response);
         } catch (IOException e) {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Błąd podczas zapisywania pliku", e);
         }
+
+        Document document = Document.builder()
+                .title(originalFilename)
+                .filePath(safeFileName)
+                .uploadedBy(currentUser.getId())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        Document savedDocument = documentRepository.save(document);
+
+        DocumentResponse response = DocumentResponse.builder()
+                .id(savedDocument.getId())
+                .title(savedDocument.getTitle())
+                .filePath(savedDocument.getFilePath())
+                .uploadedBy(savedDocument.getUploadedBy())
+                .createdAt(savedDocument.getCreatedAt())
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
     private User requireAdmin(Authentication authentication) {
@@ -210,5 +201,28 @@ public class AnnouncementController {
         }
 
         return currentUser;
+    }
+
+    /**
+     * Zwraca katalog do przechowywania dokumentów.
+     */
+    private Path getDocumentDirectory() {
+        return Path.of("uploads", "docs").toAbsolutePath().normalize();
+    }
+
+    /**
+     * Wyodrębnia rozszerzenie pliku z nazwy original.
+     */
+    private String extractExtension(String originalFilename) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            return ".pdf";
+        }
+
+        int index = originalFilename.lastIndexOf('.');
+        if (index < 0 || index == originalFilename.length() - 1) {
+            return ".pdf";
+        }
+
+        return originalFilename.substring(index).toLowerCase();
     }
 }

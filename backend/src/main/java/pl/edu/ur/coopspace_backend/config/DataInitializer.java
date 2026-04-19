@@ -385,11 +385,11 @@ public class DataInitializer {
             // DOCUMENTS
             jdbcTemplate.update(
                 "INSERT INTO document (title, file_path, uploaded_by) VALUES (?, ?, ?)",
-                "Regulamin", "/docs/regulamin.pdf", 1
+                "regulamin.pdf", "regulamin.pdf", 1
             );
             jdbcTemplate.update(
                 "INSERT INTO document (title, file_path, uploaded_by) VALUES (?, ?, ?)",
-                "Harmonogram opłat", "/docs/harmonogram-oplat.pdf", 10
+                "harmonogram-oplat.pdf", "harmonogram-oplat.pdf", 10
             );
             
             // AUDIT LOG
