@@ -1,5 +1,6 @@
 package pl.edu.ur.coopspace.administration_module
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,19 +17,46 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import pl.edu.ur.coopspace.auth.AuthSessionStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminViewAnnouncementHistoryScreen(
     onNavigateBack: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onAnnouncementClick: (Int) -> Unit
 ) {
-    // Stan dla przykładowych checkboxów
-    val checkedStates = remember { mutableStateListOf(true, true, true, true, true, true) }
+    val context = LocalContext.current
+    val token = remember { AuthSessionStore.getToken(context) }
+    val scope = rememberCoroutineScope()
+    
+    var announcements by remember { mutableStateOf<List<AnnouncementDto>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    val checkedStates = remember { mutableStateListOf<Boolean>() }
+
+    LaunchedEffect(token) {
+        if (token != null) {
+            AnnouncementApiClient.getAnnouncements(token)
+                .onSuccess { data ->
+                    announcements = data
+                    checkedStates.clear()
+                    checkedStates.addAll(List(data.size) { false })
+                    isLoading = false
+                }
+                .onFailure {
+                    isLoading = false
+                    Toast.makeText(context, "Błąd pobierania ogłoszeń", Toast.LENGTH_SHORT).show()
+                }
+        } else {
+            isLoading = false
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -98,65 +126,79 @@ fun AdminViewAnnouncementHistoryScreen(
         Spacer(modifier = Modifier.height(48.dp))
 
         // Lista ogłoszeń (Zaimplementowana jako LazyColumn dla skalowalności)
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            items(6) { index ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Ikona Gwiazdki
-                    Icon(
-                        imageVector = Icons.Outlined.Stars,
-                        contentDescription = null,
-                        tint = Color.DarkGray,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    
-                    Spacer(modifier = Modifier.width(8.dp))
-                    
-                    // Tytuł i Data
-                    Text(
-                        text = "Tytuł (obok data dodania)",
-                        fontSize = 16.sp,
-                        color = Color.Black.copy(alpha = 0.8f),
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    
-                    // Checkbox
-                    Checkbox(
-                        checked = checkedStates[index],
-                        onCheckedChange = { checkedStates[index] = it },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = Color(0xFF6750A4), // Klasyczny fiolet z Material 3
-                            uncheckedColor = Color.Gray
-                        ),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    
-                    Spacer(modifier = Modifier.width(16.dp))
-                    
-                    // Napis "Szczegóły" z przyciskiem/kliknięciem
+        if (isLoading) {
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else if (announcements.isEmpty()) {
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Text(text = "Brak ogłoszeń", color = Color.Gray)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                items(announcements.size) { index ->
+                    val ann = announcements[index]
                     Row(
-                        modifier = Modifier.clickable { /* TODO: Nawigacja do szczegółów */ },
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Szczegóły",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.DarkGray
-                        )
+                        // Ikona Gwiazdki
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Szczegóły",
+                            imageVector = Icons.Outlined.Stars,
+                            contentDescription = null,
                             tint = Color.DarkGray,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(24.dp)
                         )
+                        
+                        Spacer(modifier = Modifier.width(8.dp))
+                        
+                        // Tytuł i Data
+                        val dateString = ann.createdAt.substringBefore("T")
+                        Text(
+                            text = "${ann.title} ($dateString)",
+                            fontSize = 16.sp,
+                            color = Color.Black.copy(alpha = 0.8f),
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        
+                        // Checkbox
+                        if (index < checkedStates.size) {
+                            Checkbox(
+                                checked = checkedStates[index],
+                                onCheckedChange = { checkedStates[index] = it },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = Color(0xFF6750A4), // Klasyczny fiolet z Material 3
+                                    uncheckedColor = Color.Gray
+                                ),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.width(16.dp))
+                        
+                        // Napis "Szczegóły" z przyciskiem/kliknięciem
+                        Row(
+                            modifier = Modifier.clickable { onAnnouncementClick(ann.id) },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Szczegóły",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.DarkGray
+                            )
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = "Szczegóły",
+                                tint = Color.DarkGray,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -171,7 +213,39 @@ fun AdminViewAnnouncementHistoryScreen(
         ) {
             // Przycisk Usuń zaznaczone z obramowaniem w stylu makiety
             OutlinedButton(
-                onClick = { /* TODO: Logika usuwania */ },
+                onClick = {
+                    if (token != null) {
+                        val idsToDelete = announcements.indices
+                            .filter { index -> checkedStates.getOrElse(index) { false } }
+                            .map { index -> announcements[index].id }
+                        
+                        if (idsToDelete.isEmpty()) {
+                            Toast.makeText(context, "Brak zaznaczonych elementów", Toast.LENGTH_SHORT).show()
+                            return@OutlinedButton
+                        }
+                        
+                        scope.launch {
+                            isLoading = true
+                            AnnouncementApiClient.deleteAnnouncements(token, idsToDelete)
+                                .onSuccess {
+                                    Toast.makeText(context, "Usunięto pomyślnie", Toast.LENGTH_SHORT).show()
+                                    AnnouncementApiClient.getAnnouncements(token)
+                                        .onSuccess { data ->
+                                            announcements = data
+                                            checkedStates.clear()
+                                            checkedStates.addAll(List(data.size) { false })
+                                            isLoading = false
+                                        }.onFailure {
+                                            isLoading = false
+                                        }
+                                }
+                                .onFailure {
+                                    isLoading = false
+                                    Toast.makeText(context, "Błąd usuwania", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                    }
+                },
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
                 ),

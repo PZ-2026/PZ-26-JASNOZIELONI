@@ -1,5 +1,6 @@
 package pl.edu.ur.coopspace.administration_module
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,18 +10,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import pl.edu.ur.coopspace.auth.AuthSessionStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,8 +29,15 @@ fun AdminAddAnnouncementScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit
 ) {
-    var titleValue by remember { mutableStateOf("Input") }
-    var contentValue by remember { mutableStateOf("Input") }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val token = remember { AuthSessionStore.getToken(context) }
+
+    var titleValue by remember { mutableStateOf("") }
+    var contentValue by remember { mutableStateOf("") }
+    
+    var isAdding by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -101,6 +109,15 @@ fun AdminAddAnnouncementScreen(
         Spacer(modifier = Modifier.height(48.dp))
 
         // Pole: Tytuł
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage!!,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
         AnnouncementTextField(
             label = "Tytuł",
             value = titleValue,
@@ -120,46 +137,7 @@ fun AdminAddAnnouncementScreen(
             singleLine = false
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Pole: Dodaj Zdjęcie
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp)
-                .background(Color(0xFFEBE6F3), RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                .drawBehind {
-                    // Ciemna ramka tylko na dole jak w TextField
-                    val strokeWidth = 1.dp.toPx()
-                    val y = size.height - strokeWidth / 2
-                    drawLine(
-                        Color.Black,
-                        Offset(0f, y),
-                        Offset(size.width, y),
-                        strokeWidth
-                    )
-                }
-                .clickable { /* TODO: Wybór zdjęcia */ }
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "Dodaj Zdjęcie (Opcjonalne)",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.TopStart)
-            )
-            
-            Icon(
-                imageVector = Icons.Default.Image,
-                contentDescription = "Dodaj zdjęcie",
-                tint = Color.DarkGray,
-                modifier = Modifier
-                    .size(100.dp)
-                    .align(Alignment.Center)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
         // Przyciski akcji na dole (Dodaj / Cofnij)
         Row(
@@ -167,12 +145,39 @@ fun AdminAddAnnouncementScreen(
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             Button(
-                onClick = { /* TODO: Zapisz logikę */ },
+                onClick = {
+                    if (titleValue.isBlank() || contentValue.isBlank()) {
+                        errorMessage = "Wypełnij wszystkie pola"
+                        return@Button
+                    }
+                    if (token == null) {
+                        errorMessage = "Brak tokenu, zaloguj się ponownie"
+                        return@Button
+                    }
+                    isAdding = true
+                    errorMessage = null
+                    
+                    scope.launch {
+                        AnnouncementApiClient.createAnnouncement(
+                            token = token,
+                            title = titleValue,
+                            content = contentValue
+                        ).onSuccess {
+                            isAdding = false
+                            Toast.makeText(context, "Dodano ogłoszenie", Toast.LENGTH_SHORT).show()
+                            onNavigateBack()
+                        }.onFailure { error ->
+                            isAdding = false
+                            errorMessage = error.message ?: "Błąd podczas dodawania"
+                        }
+                    }
+                },
+                enabled = !isAdding,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 shape = RoundedCornerShape(50),
                 contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
             ) {
-                Text(text = "Dodaj", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
+                Text(text = if (isAdding) "Wysyłanie..." else "Dodaj", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
             }
             
             Button(
