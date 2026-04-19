@@ -1,7 +1,9 @@
 package pl.edu.ur.coopspace.administration_module
 
+import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -145,6 +147,32 @@ object AnnouncementApiClient {
                 createdAt = json.optString("createdAt", "")
             )
         }
+    }
+
+    suspend fun deleteDocument(token: String, id: Int): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            request("DELETE", "/api/announcements/documents/$id", token)
+            Unit
+        }
+    }
+
+    fun enqueueDocumentDownload(context: Context, token: String, document: DocumentDto): Result<Unit> = runCatching {
+        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val url = "$baseUrl/api/announcements/documents/${document.id}/download"
+
+        val sanitizedTitle = document.title.ifBlank { "dokument-${document.id}" }
+            .replace('/', '_')
+            .replace('\\', '_')
+        val request = DownloadManager.Request(Uri.parse(url))
+            .setMimeType("application/octet-stream")
+            .setTitle(sanitizedTitle)
+            .setDescription("Pobieranie dokumentu")
+            .addRequestHeader("Authorization", "Bearer $token")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, sanitizedTitle)
+
+        val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        manager.enqueue(request)
     }
 
     private fun resolveFileName(context: Context, uri: Uri, mimeType: String): String {

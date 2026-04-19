@@ -10,14 +10,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -140,46 +137,7 @@ fun AdminAddAnnouncementScreen(
             singleLine = false
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Pole: Dodaj Zdjęcie
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp)
-                .background(Color(0xFFEBE6F3), RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                .drawBehind {
-                    // Ciemna ramka tylko na dole jak w TextField
-                    val strokeWidth = 1.dp.toPx()
-                    val y = size.height - strokeWidth / 2
-                    drawLine(
-                        Color.Black,
-                        Offset(0f, y),
-                        Offset(size.width, y),
-                        strokeWidth
-                    )
-                }
-                .clickable { /* TODO: Wybór zdjęcia */ }
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "Dodaj Zdjęcie (Opcjonalne)",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.TopStart)
-            )
-            
-            Icon(
-                imageVector = Icons.Default.Image,
-                contentDescription = "Dodaj zdjęcie",
-                tint = Color.DarkGray,
-                modifier = Modifier
-                    .size(100.dp)
-                    .align(Alignment.Center)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
         // Przyciski akcji na dole (Dodaj / Cofnij)
         Row(

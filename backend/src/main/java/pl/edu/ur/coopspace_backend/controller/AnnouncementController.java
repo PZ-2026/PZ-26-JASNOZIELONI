@@ -1,7 +1,10 @@
 package pl.edu.ur.coopspace_backend.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -72,6 +75,54 @@ public class AnnouncementController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/documents/{id}/download")
+    public ResponseEntity<Resource> downloadDocument(
+            Authentication authentication,
+            @PathVariable Integer id
+    ) throws IOException {
+        requireAdmin(authentication);
+
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dokument nie istnieje"));
+
+        Path path = resolveDocumentPath(document.getFilePath());
+        Resource resource = new FileSystemResource(path);
+        if (!resource.exists()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plik dokumentu nie istnieje");
+        }
+
+        String contentType = Files.probeContentType(path);
+        if (contentType == null || contentType.isBlank()) {
+            contentType = "application/octet-stream";
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header("Content-Disposition", "attachment; filename=\"" + path.getFileName() + "\"")
+                .body(resource);
+    }
+
+    @DeleteMapping("/documents/{id}")
+    public ResponseEntity<Void> deleteDocument(
+            Authentication authentication,
+            @PathVariable Integer id
+    ) {
+        requireAdmin(authentication);
+
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dokument nie istnieje"));
+
+        Path path = resolveDocumentPath(document.getFilePath());
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Nie udalo sie usunac pliku dokumentu");
+        }
+
+        documentRepository.delete(document);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
@@ -208,6 +259,17 @@ public class AnnouncementController {
      */
     private Path getDocumentDirectory() {
         return Path.of("uploads", "docs").toAbsolutePath().normalize();
+    }
+
+    private Path resolveDocumentPath(String storedFilePath) {
+        Path documentsDirectory = getDocumentDirectory();
+        Path path = documentsDirectory.resolve(storedFilePath).normalize();
+
+        if (!path.startsWith(documentsDirectory)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nieprawidlowy plik dokumentu");
+        }
+
+        return path;
     }
 
     /**

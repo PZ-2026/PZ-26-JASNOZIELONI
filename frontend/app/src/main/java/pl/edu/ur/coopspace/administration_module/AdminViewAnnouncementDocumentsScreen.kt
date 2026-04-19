@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
@@ -40,6 +39,8 @@ fun AdminViewAnnouncementDocumentsScreen(
     
     var documents by remember { mutableStateOf<List<DocumentDto>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var expandedMenuDocId by remember { mutableStateOf<Int?>(null) }
+    var documentPendingDelete by remember { mutableStateOf<DocumentDto?>(null) }
 
     fun refreshDocuments() {
         if (token != null) {
@@ -79,6 +80,43 @@ fun AdminViewAnnouncementDocumentsScreen(
                     }
             }
         }
+    }
+
+    if (documentPendingDelete != null) {
+        val docToDelete = documentPendingDelete!!
+        AlertDialog(
+            onDismissRequest = { documentPendingDelete = null },
+            title = { Text("Usuń dokument") },
+            text = { Text("Czy na pewno chcesz usunąć dokument: ${docToDelete.title}?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        documentPendingDelete = null
+                        if (token != null) {
+                            scope.launch {
+                                isLoading = true
+                                AnnouncementApiClient.deleteDocument(token, docToDelete.id)
+                                    .onSuccess {
+                                        Toast.makeText(context, "Usunięto dokument", Toast.LENGTH_SHORT).show()
+                                        refreshDocuments()
+                                    }
+                                    .onFailure {
+                                        isLoading = false
+                                        Toast.makeText(context, "Nie udało się usunąć dokumentu", Toast.LENGTH_SHORT).show()
+                                    }
+                            }
+                        }
+                    }
+                ) {
+                    Text("Usuń")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { documentPendingDelete = null }) {
+                    Text("Anuluj")
+                }
+            }
+        )
     }
 
     Column(
@@ -163,6 +201,8 @@ fun AdminViewAnnouncementDocumentsScreen(
             ) {
                 items(documents.size) { index ->
                     val doc = documents[index]
+                    val documentType = resolveDocumentType(doc)
+                    val typeColor = documentTypeColor(documentType)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -181,7 +221,7 @@ fun AdminViewAnnouncementDocumentsScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
                                 contentDescription = "Plik",
-                                tint = Color.Gray,
+                                tint = typeColor,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
@@ -200,7 +240,7 @@ fun AdminViewAnnouncementDocumentsScreen(
                             )
                             val dateString = doc.createdAt.substringBefore("T")
                             Text(
-                                text = "Dodano: $dateString",
+                                text = "Typ: $documentType • Dodano: $dateString",
                                 fontSize = 11.sp,
                                 color = Color.Gray,
                                 maxLines = 1,
@@ -209,12 +249,46 @@ fun AdminViewAnnouncementDocumentsScreen(
                         }
 
                         // Przycisk "Więcej" (opcje 3 kropki)
-                        IconButton(onClick = { /* TODO */ }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = "Opcje",
-                                tint = Color.DarkGray
-                            )
+                        Box {
+                            IconButton(onClick = { expandedMenuDocId = doc.id }) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "Opcje",
+                                    tint = Color.DarkGray
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = expandedMenuDocId == doc.id,
+                                onDismissRequest = { expandedMenuDocId = null }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Pobierz") },
+                                    onClick = {
+                                        expandedMenuDocId = null
+                                        if (token == null) {
+                                            Toast.makeText(context, "Brak sesji użytkownika", Toast.LENGTH_SHORT).show()
+                                            return@DropdownMenuItem
+                                        }
+
+                                        AnnouncementApiClient.enqueueDocumentDownload(context, token, doc)
+                                            .onSuccess {
+                                                Toast.makeText(context, "Rozpoczęto pobieranie", Toast.LENGTH_SHORT).show()
+                                            }
+                                            .onFailure {
+                                                Toast.makeText(context, "Nie udało się rozpocząć pobierania", Toast.LENGTH_SHORT).show()
+                                            }
+                                    }
+                                )
+
+                                DropdownMenuItem(
+                                    text = { Text("Usuń") },
+                                    onClick = {
+                                        expandedMenuDocId = null
+                                        documentPendingDelete = doc
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -258,5 +332,44 @@ fun AdminViewAnnouncementDocumentsScreen(
         }
         
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+private fun resolveDocumentType(document: DocumentDto): String {
+    val extension = extractExtension(document.title)
+        ?: extractExtension(document.filePath)
+        ?: return "PLIK"
+
+    return when (extension) {
+        "pdf" -> "PDF"
+        "doc", "docx", "odt" -> "DOKUMENT"
+        "xls", "xlsx", "ods", "csv" -> "ARKUSZ"
+        "png", "jpg", "jpeg", "gif", "webp", "bmp" -> "OBRAZ"
+        "txt", "rtf", "md" -> "TEKST"
+        else -> extension.uppercase()
+    }
+}
+
+private fun extractExtension(fileName: String?): String? {
+    if (fileName.isNullOrBlank()) {
+        return null
+    }
+
+    val dotIndex = fileName.lastIndexOf('.')
+    if (dotIndex < 0 || dotIndex == fileName.length - 1) {
+        return null
+    }
+
+    return fileName.substring(dotIndex + 1).lowercase()
+}
+
+private fun documentTypeColor(documentType: String): Color {
+    return when (documentType) {
+        "PDF" -> Color(0xFFC62828)
+        "OBRAZ" -> Color(0xFF2E7D32)
+        "ARKUSZ" -> Color(0xFF1565C0)
+        "DOKUMENT" -> Color(0xFF6A1B9A)
+        "TEKST" -> Color(0xFF455A64)
+        else -> Color.Gray
     }
 }
