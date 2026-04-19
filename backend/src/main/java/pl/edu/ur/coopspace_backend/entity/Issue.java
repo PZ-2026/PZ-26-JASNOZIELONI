@@ -29,7 +29,7 @@ public class Issue {
     @Column(name = "category_id", nullable = false)
     private Integer categoryId;
 
-    @Column(name = "local_id", nullable = false)
+    @Column(name = "local_id")
     private Integer localId;
 
     @Column(name = "created_by_user_id", nullable = false)

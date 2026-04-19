@@ -354,10 +354,7 @@ public class IssueService {
             return currentUser.getLocalId();
         }
 
-        if (requestedLocalId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "localId jest wymagane");
-        }
-
+        // For ADMIN or MAINTAINER, localId can be null for community-wide issues
         return requestedLocalId;
     }
 
