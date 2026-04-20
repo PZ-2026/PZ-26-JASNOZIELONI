@@ -52,8 +52,9 @@ public class PaymentService {
     }
 
     private void updateRateForType(String typeName, BigDecimal newRate, List<Charge> activeCharges) {
-        if (newRate == null) {
-            return; // No update requested for this rate
+        BigDecimal currentRate = getLatestRateForType(typeName);
+        if (newRate == null || (currentRate != null && newRate.compareTo(currentRate) == 0)) {
+            return; // No update requested or rate is the same
         }
 
         chargeItemTypeRepository.findByName(typeName).ifPresent(type -> {
