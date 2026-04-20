@@ -256,6 +256,17 @@ fun CoopSpaceApp() {
                 },
                 onNavigateToReportsInProgress = {
                     navController.navigate("admin_reports_in_progress")
+                },
+                onNavigateToNewReport = {
+                    navController.navigate("admin_new_report")
+                }
+            )
+        }
+
+        composable("admin_new_report") {
+            pl.edu.ur.coopspace.administration_module.AdminNewReportScreen(
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }

@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -17,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -210,15 +213,19 @@ fun AdminFinishedReportsScreen(
                 color = MaterialTheme.colorScheme.error,
                 fontSize = 13.sp
             )
+        } else if (filteredReports.isEmpty()) {
+            Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                Text("Brak zgłoszeń do wyświetlenia", color = Color.Gray, fontSize = 16.sp)
+            }
         } else {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().weight(1f),
                 shape = RoundedCornerShape(6.dp),
                 border = BorderStroke(1.dp, Color.Black),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF90D18F))
             ) {
-                Column {
-                    filteredReports.forEachIndexed { index, report ->
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    itemsIndexed(filteredReports) { index, report ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -230,7 +237,10 @@ fun AdminFinishedReportsScreen(
                             Text(
                                 text = report.second,
                                 fontSize = 15.sp,
-                                color = Color.Black.copy(alpha = 0.8f)
+                                color = Color.Black.copy(alpha = 0.8f),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f).padding(end = 16.dp)
                             )
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -261,8 +271,6 @@ fun AdminFinishedReportsScreen(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.weight(1f))
 
         // Przycisk Cofnij (Wyrównany do prawej)
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {

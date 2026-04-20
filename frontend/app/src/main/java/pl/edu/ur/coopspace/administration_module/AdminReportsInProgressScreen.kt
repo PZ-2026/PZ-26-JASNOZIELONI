@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -261,15 +262,19 @@ fun AdminReportsInProgressScreen(
                 color = MaterialTheme.colorScheme.error,
                 fontSize = 13.sp
             )
+        } else if (filteredReports.isEmpty()) {
+            Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                Text("Brak zgłoszeń do wyświetlenia", color = Color.Gray, fontSize = 16.sp)
+            }
         } else {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().weight(1f),
                 shape = RoundedCornerShape(2.dp),
                 border = BorderStroke(1.dp, Color.Black),
                 colors = CardDefaults.cardColors(containerColor = Color.Transparent)
             ) {
-                Column {
-                    filteredReports.forEachIndexed { index, report ->
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    itemsIndexed(filteredReports) { index, report ->
                         val bgColor = if (report.status == InProgressReportStatus.ASSIGNED) {
                             Color(0xFF9ACDE7)
                         } else {
@@ -288,7 +293,10 @@ fun AdminReportsInProgressScreen(
                             Text(
                                 text = report.title,
                                 fontSize = 15.sp,
-                                color = Color.Black
+                                color = Color.Black,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f).padding(end = 16.dp)
                             )
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -319,8 +327,6 @@ fun AdminReportsInProgressScreen(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.weight(1f))
 
         // Przycisk Cofnij
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
