@@ -281,23 +281,23 @@ public class DataInitializer {
             // CHARGES
             jdbcTemplate.update(
                 "INSERT INTO charge (local_id, period_start, period_end, total_amount, status, created_by) VALUES (?, ?, ?, ?, ?::charge_status, ?)",
-                1, java.sql.Date.valueOf("2025-01-01"), java.sql.Date.valueOf("2025-01-31"), 500, "UNPAID", 1
+                1, java.sql.Date.valueOf("2025-01-01"), java.sql.Date.valueOf("2027-01-31"), 500, "UNPAID", 1
             );
             jdbcTemplate.update(
                 "INSERT INTO charge (local_id, period_start, period_end, total_amount, status, created_by) VALUES (?, ?, ?, ?, ?::charge_status, ?)",
-                2, java.sql.Date.valueOf("2025-01-01"), java.sql.Date.valueOf("2025-01-31"), 650, "PARTIALLY_PAID", 1
+                2, java.sql.Date.valueOf("2025-01-01"), java.sql.Date.valueOf("2027-01-31"), 650, "PARTIALLY_PAID", 1
             );
             jdbcTemplate.update(
                 "INSERT INTO charge (local_id, period_start, period_end, total_amount, status, created_by) VALUES (?, ?, ?, ?, ?::charge_status, ?)",
-                3, java.sql.Date.valueOf("2025-01-01"), java.sql.Date.valueOf("2025-01-31"), 430, "PAID", 10
+                3, java.sql.Date.valueOf("2025-01-01"), java.sql.Date.valueOf("2027-01-31"), 430, "PAID", 10
             );
             jdbcTemplate.update(
                 "INSERT INTO charge (local_id, period_start, period_end, total_amount, status, created_by) VALUES (?, ?, ?, ?, ?::charge_status, ?)",
-                4, java.sql.Date.valueOf("2025-01-01"), java.sql.Date.valueOf("2025-01-31"), 720, "UNPAID", 1
+                4, java.sql.Date.valueOf("2025-01-01"), java.sql.Date.valueOf("2027-01-31"), 720, "UNPAID", 1
             );
             jdbcTemplate.update(
                 "INSERT INTO charge (local_id, period_start, period_end, total_amount, status, created_by) VALUES (?, ?, ?, ?, ?::charge_status, ?)",
-                5, java.sql.Date.valueOf("2025-01-01"), java.sql.Date.valueOf("2025-01-31"), 590, "PARTIALLY_PAID", 10
+                5, java.sql.Date.valueOf("2025-01-01"), java.sql.Date.valueOf("2027-01-31"), 590, "PARTIALLY_PAID", 10
             );
             
             // CHARGE ITEMS
