@@ -56,7 +56,7 @@ CREATE TABLE issue (
     title VARCHAR NOT NULL,
     description TEXT NOT NULL,
     category_id INT NOT NULL,
-    local_id INT NOT NULL,
+    local_id INT,
     created_by_user_id INT NOT NULL,
     main_assignee_id INT,
     status issue_status NOT NULL DEFAULT 'OPEN',
