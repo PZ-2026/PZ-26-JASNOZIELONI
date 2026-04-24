@@ -176,7 +176,7 @@ fun AdminResidentUsersScreen(
 
                         val localId = selectedLocal?.id
                         if (firstName.isBlank() || lastName.isBlank() || email.isBlank() || password.isBlank() || localId == null) {
-                            errorMessage = "Uzupelnij wszystkie wymagane pola i wybierz lokal"
+                            errorMessage = "Uzupełnij wszystkie wymagane pola i wybierz lokal"
                             return@Button
                         }
 
@@ -207,7 +207,7 @@ fun AdminResidentUsersScreen(
                                 selectedLocal = null
                                 loadResidents()
                             }.onFailure { throwable ->
-                                errorMessage = throwable.message ?: "Nie udalo sie utworzyc konta mieszkanca"
+                                errorMessage = throwable.message ?: "Nie udało się utworzyć konta mieszkańca"
                             }
                             isCreating = false
                         }
@@ -300,7 +300,7 @@ fun AdminResidentUsersScreen(
         TextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Wyszukaj mieszkanca", color = Color.Gray) },
+            placeholder = { Text("Wyszukaj mieszkańca", color = Color.Gray) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Menu, // Na makiecie jest ikona podobna do menu (lista/filtry) po lewej

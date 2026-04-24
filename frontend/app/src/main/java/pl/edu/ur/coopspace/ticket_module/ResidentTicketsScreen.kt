@@ -72,7 +72,7 @@ fun ResidentTicketsScreen(
                 )
             }
         }.onFailure { throwable ->
-            errorMessage = throwable.message ?: "Nie udalo sie pobrac listy zgloszen"
+            errorMessage = throwable.message ?: "Nie udało się pobrać listy zgłoszeń"
         }
 
         isLoading = false

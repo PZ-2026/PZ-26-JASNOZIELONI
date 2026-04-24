@@ -51,13 +51,13 @@ fun ServiceTicketDetailsScreen(
     LaunchedEffect(ticketId) {
         val token = AuthSessionStore.getToken(context)
         if (token.isNullOrBlank()) {
-            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            errorMessage = "Brak sesji. Zaloguj się ponownie."
             isLoading = false
             return@LaunchedEffect
         }
 
         if (parsedTicketId == null) {
-            errorMessage = "Nieprawidlowe id zgloszenia"
+            errorMessage = "Nieprawidłowe id zgłoszenia"
             isLoading = false
             return@LaunchedEffect
         }
@@ -67,20 +67,20 @@ fun ServiceTicketDetailsScreen(
                 categoryNameById = categories.associate { category -> category.id to category.name }
             }
             .onFailure { throwable ->
-                errorMessage = throwable.message ?: "Nie udalo sie pobrac kategorii"
+                errorMessage = throwable.message ?: "Nie udało się pobrać kategorii"
             }
 
         IssueApiClient.getAssignedIssues(token)
             .onSuccess { issues ->
                 issue = issues.firstOrNull { it.id == parsedTicketId }
                 if (issue == null) {
-                    errorMessage = "Nie znaleziono zgloszenia"
+                    errorMessage = "Nie znaleziono zgłoszenia"
                 } else {
                     selectedStatus = issue?.status ?: "OPEN"
                 }
             }
             .onFailure { throwable ->
-                errorMessage = throwable.message ?: "Nie udalo sie pobrac szczegolow"
+                errorMessage = throwable.message ?: "Nie udało się pobrać szczegółów"
             }
 
         isLoading = false
@@ -340,7 +340,7 @@ fun ServiceTicketDetailsScreen(
 
                     val token = AuthSessionStore.getToken(context)
                     if (token.isNullOrBlank()) {
-                        errorMessage = "Brak sesji. Zaloguj sie ponownie."
+                        errorMessage = "Brak sesji. Zaloguj się ponownie."
                         return@Button
                     }
 
@@ -355,7 +355,7 @@ fun ServiceTicketDetailsScreen(
                             issue = updated
                             selectedStatus = updated.status
                         }.onFailure {
-                            errorMessage = it.message ?: "Nie udalo sie zaktualizowac statusu"
+                            errorMessage = it.message ?: "Nie udało się zaktualizować statusu"
                         }
                     }
                 },

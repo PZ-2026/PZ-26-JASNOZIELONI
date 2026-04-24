@@ -90,7 +90,7 @@ object PaymentApiClient {
             val responseBody = readResponseBody(connection)
 
             if (responseCode !in 200..299) {
-                throw IllegalStateException("Aktualizacja stawek nie powiodła się. Wideo serwera kod: $responseCode, błąd: $responseBody")
+                throw IllegalStateException("Aktualizacja stawek nie powiodła się. Kod serwera: $responseCode")
             }
         }
     }

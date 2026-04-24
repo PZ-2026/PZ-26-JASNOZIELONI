@@ -56,13 +56,13 @@ fun ResidentNewTicketScreen(
     LaunchedEffect(Unit) {
         val token = AuthSessionStore.getToken(context)
         if (token.isNullOrBlank()) {
-            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            errorMessage = "Brak sesji. Zaloguj się ponownie."
             return@LaunchedEffect
         }
 
         IssueApiClient.getIssueCategories(token)
             .onSuccess { categories = it }
-            .onFailure { errorMessage = it.message ?: "Nie udalo sie pobrac kategorii" }
+            .onFailure { errorMessage = it.message ?: "Nie udało się pobrać kategorii" }
     }
 
     var locationExpanded by remember { mutableStateOf(false) }
@@ -350,19 +350,19 @@ fun ResidentNewTicketScreen(
                     if (isLoading) return@Button
 
                     if (title.isBlank() || description.isBlank() || selectedCategory.isBlank()) {
-                        errorMessage = "Uzupelnij tytul, opis i kategorie"
+                        errorMessage = "Uzupełnij tytuł, opis i kategorie"
                         return@Button
                     }
 
                     val selectedCategoryId = categories.firstOrNull { it.name == selectedCategory }?.id
                     if (selectedCategoryId == null) {
-                        errorMessage = "Wybierz poprawna kategorie"
+                        errorMessage = "Wybierz poprawną kategorię"
                         return@Button
                     }
 
                     val token = AuthSessionStore.getToken(context)
                     if (token.isNullOrBlank()) {
-                        errorMessage = "Brak sesji. Zaloguj sie ponownie."
+                        errorMessage = "Brak sesji. Zaloguj się ponownie."
                         return@Button
                     }
 
@@ -395,7 +395,7 @@ fun ResidentNewTicketScreen(
 
                                 if (uploadResult.isFailure) {
                                     uploadFailed = true
-                                    errorMessage = uploadResult.exceptionOrNull()?.message ?: "Nie udalo sie zapisac zdjęć"
+                                    errorMessage = uploadResult.exceptionOrNull()?.message ?: "Nie udało się zapisać zdjęć"
                                     break
                                 }
                             }
@@ -405,7 +405,7 @@ fun ResidentNewTicketScreen(
                                 onBackClick()
                             }
                         }.onFailure {
-                            errorMessage = it.message ?: "Nie udalo sie wyslac zgloszenia"
+                            errorMessage = it.message ?: "Nie udało się wysłać zgłoszenia"
                         }
                     }
                 },

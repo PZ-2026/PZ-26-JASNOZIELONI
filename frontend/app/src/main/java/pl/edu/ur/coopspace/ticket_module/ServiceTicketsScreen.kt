@@ -32,7 +32,7 @@ fun ServiceTicketsScreen(
     LaunchedEffect(Unit) {
         val token = AuthSessionStore.getToken(context)
         if (token.isNullOrBlank()) {
-            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            errorMessage = "Brak sesji. Zaloguj się ponownie."
             isLoading = false
             return@LaunchedEffect
         }
@@ -48,7 +48,7 @@ fun ServiceTicketsScreen(
                 )
             }
         }.onFailure { throwable ->
-            errorMessage = throwable.message ?: "Nie udalo sie pobrac listy zgloszen"
+            errorMessage = throwable.message ?: "Nie udało się pobrać listy zgłoszeń"
         }
 
         isLoading = false

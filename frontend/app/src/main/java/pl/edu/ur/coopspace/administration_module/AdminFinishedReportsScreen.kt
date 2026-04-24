@@ -47,7 +47,7 @@ fun AdminFinishedReportsScreen(
 
         val token = AuthSessionStore.getToken(context)
         if (token.isNullOrBlank()) {
-            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            errorMessage = "Brak sesji. Zaloguj się ponownie."
             isLoading = false
             return
         }
@@ -59,7 +59,7 @@ fun AdminFinishedReportsScreen(
                 }
             }
             .onFailure { throwable ->
-                errorMessage = throwable.message ?: "Nie udalo sie pobrac zakonczonych zgloszen"
+                errorMessage = throwable.message ?: "Nie udało się pobrać zakończonych zgłoszeń"
             }
 
         isLoading = false
@@ -144,7 +144,7 @@ fun AdminFinishedReportsScreen(
         TextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Wyszukaj mieszkanca", color = Color.Gray) }, // Zachowano "mieszkanca" jak na makiecie
+            placeholder = { Text("Wyszukaj mieszkańca", color = Color.Gray) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Menu,
@@ -190,7 +190,7 @@ fun AdminFinishedReportsScreen(
                 onClick = {
                     val localParam = localFilterText.takeIf { it.isNotBlank() }?.toIntOrNull()
                     if (localFilterText.isNotBlank() && localParam == null) {
-                        errorMessage = "Numer lokalu musi byc liczba"
+                        errorMessage = "Numer lokalu musi być liczbą"
                         return@Button
                     }
 
@@ -245,7 +245,7 @@ fun AdminFinishedReportsScreen(
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "Szczegoly",
+                                    text = "Szczegóły",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Black.copy(alpha = 0.8f)
@@ -253,7 +253,7 @@ fun AdminFinishedReportsScreen(
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                    contentDescription = "Wiecej",
+                                    contentDescription = "Więcej",
                                     tint = Color.Black.copy(alpha = 0.8f),
                                     modifier = Modifier.size(16.dp)
                                 )

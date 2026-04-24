@@ -98,7 +98,7 @@ fun AdminGenerateStatisticRaportScreen(
 
         // Instrukcja
         Text(
-            text = "Wybierz z dane z których\nwygenerowany zostanie\nraport",
+            text = "Wybierz dane z których\nwygenerowany zostanie\nraport",
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             lineHeight = 26.sp,
@@ -154,7 +154,7 @@ fun AdminGenerateStatisticRaportScreen(
                 color = Color.Black
             )
             Text(
-                text = "(miesiace)",
+                text = "(miesiące)",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
