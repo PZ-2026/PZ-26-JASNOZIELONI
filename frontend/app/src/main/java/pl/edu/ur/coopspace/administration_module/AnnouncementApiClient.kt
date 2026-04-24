@@ -106,7 +106,7 @@ object AnnouncementApiClient {
             val mimeType = context.contentResolver.getType(uri) ?: "application/octet-stream"
             val fileName = resolveFileName(context, uri, mimeType)
             val fileBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                ?: throw IllegalStateException("Nie udalo sie odczytac pliku")
+                ?: throw IllegalStateException("Nie udało się odczytać pliku")
 
             val boundary = "----CoopSpaceBoundary${System.currentTimeMillis()}"
             val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
@@ -254,7 +254,7 @@ object AnnouncementApiClient {
 
     private fun extractErrorMessage(responseBody: String): String {
         if (responseBody.isBlank()) {
-            return "Operacja nie powiodla sie"
+            return "Operacja nie powiodła się"
         }
 
         return runCatching {
@@ -262,8 +262,8 @@ object AnnouncementApiClient {
             when {
                 json.has("message") -> json.getString("message")
                 json.has("error") -> json.getString("error")
-                else -> "Operacja nie powiodla sie"
+                else -> "Operacja nie powiodła się"
             }
-        }.getOrElse { "Operacja nie powiodla sie" }
+        }.getOrElse { "Operacja nie powiodła się" }
     }
 }
