@@ -57,7 +57,7 @@ fun AdminReportsInProgressScreen(
 
         val token = AuthSessionStore.getToken(context)
         if (token.isNullOrBlank()) {
-            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            errorMessage = "Brak sesji. Zaloguj się ponownie."
             isLoading = false
             return
         }
@@ -75,7 +75,7 @@ fun AdminReportsInProgressScreen(
                     }
             }
             .onFailure { throwable ->
-                errorMessage = throwable.message ?: "Nie udalo sie pobrac zgloszen"
+                errorMessage = throwable.message ?: "Nie udało się pobrać zgłoszeń"
             }
 
         isLoading = false
@@ -158,7 +158,7 @@ fun AdminReportsInProgressScreen(
         TextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Wyszukaj mieszkanca", color = Color.Gray) },
+            placeholder = { Text("Wyszukaj mieszkańca", color = Color.Gray) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Menu,
@@ -239,7 +239,7 @@ fun AdminReportsInProgressScreen(
                     val statusParam = selectedStatusFilter.takeUnless { it == "ALL" }
                     val localParam = localFilterText.takeIf { it.isNotBlank() }?.toIntOrNull()
                     if (localFilterText.isNotBlank() && localParam == null) {
-                        errorMessage = "Numer lokalu musi byc liczba"
+                        errorMessage = "Numer lokalu musi być liczbą"
                         return@Button
                     }
 
@@ -301,7 +301,7 @@ fun AdminReportsInProgressScreen(
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "Szczegoly",
+                                    text = "Szczegóły",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Black

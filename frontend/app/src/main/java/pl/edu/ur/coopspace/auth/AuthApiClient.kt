@@ -74,7 +74,7 @@ object AuthApiClient {
 
     private fun extractErrorMessage(responseBody: String): String {
         if (responseBody.isBlank()) {
-            return "Logowanie nie powiodlo sie"
+            return "Logowanie nie powiodło się"
         }
 
         return runCatching {
@@ -82,9 +82,9 @@ object AuthApiClient {
             when {
                 json.has("message") -> json.getString("message")
                 json.has("error") -> json.getString("error")
-                else -> "Logowanie nie powiodlo sie"
+                else -> "Logowanie nie powiodło się"
             }
-        }.getOrElse { "Logowanie nie powiodlo sie" }
+        }.getOrElse { "Logowanie nie powiodło się" }
     }
 }
 

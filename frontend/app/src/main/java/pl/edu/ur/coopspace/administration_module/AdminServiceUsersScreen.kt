@@ -52,14 +52,14 @@ fun AdminServiceUsersScreen(
 
         val token = AuthSessionStore.getToken(context)
         if (token.isNullOrBlank()) {
-            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            errorMessage = "Brak sesji. Zaloguj się ponownie."
             isLoading = false
             return
         }
 
         UserAdminApiClient.getMaintainers(token)
             .onSuccess { maintainers = it }
-            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udalo sie pobrac listy konserwatorow" }
+            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udało się pobrać listy konserwatorów" }
 
         isLoading = false
     }
@@ -76,7 +76,7 @@ fun AdminServiceUsersScreen(
 
         UserAdminApiClient.updateUserActiveState(token, maintainer.id, isActive)
             .onSuccess { loadMaintainers() }
-            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udalo sie zmienic stanu konta" }
+            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udało się zmienić stanu konta" }
 
         updatingUserId = null
     }
@@ -114,13 +114,13 @@ fun AdminServiceUsersScreen(
                     onClick = {
                         if (isCreating) return@Button
                         if (firstName.isBlank() || lastName.isBlank() || email.isBlank() || password.isBlank()) {
-                            errorMessage = "Uzupelnij wszystkie wymagane pola"
+                            errorMessage = "Uzupełnij wszystkie wymagane pola"
                             return@Button
                         }
 
                         val token = AuthSessionStore.getToken(context)
                         if (token.isNullOrBlank()) {
-                            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+                            errorMessage = "Brak sesji. Zaloguj się ponownie."
                             return@Button
                         }
 
@@ -143,7 +143,7 @@ fun AdminServiceUsersScreen(
                                 phone = ""
                                 loadMaintainers()
                             }.onFailure { throwable ->
-                                errorMessage = throwable.message ?: "Nie udalo sie utworzyc konta konserwatora"
+                                errorMessage = throwable.message ?: "Nie udało się utworzyć konta konserwatora"
                             }
                             isCreating = false
                         }

@@ -75,30 +75,30 @@ fun AdminIssueDetailsScreen(
     LaunchedEffect(ticketId) {
         val token = AuthSessionStore.getToken(context)
         if (token.isNullOrBlank()) {
-            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            errorMessage = "Brak sesji. Zaloguj się ponownie."
             isLoading = false
             return@LaunchedEffect
         }
 
         IssueApiClient.getIssueCategories(token)
             .onSuccess { list -> categories = list.associate { it.id to it.name } }
-            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udalo sie pobrac kategorii" }
+            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udało się pobrać kategorii" }
 
         IssueApiClient.getMaintainers(token)
             .onSuccess { list -> maintainers = list }
-            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udalo sie pobrac konserwatorow" }
+            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udało się pobrać konserwatorów" }
 
         IssueApiClient.getAllIssues(token)
             .onSuccess { issues ->
                 issue = issues.firstOrNull { it.id == ticketId }
                 if (issue == null) {
-                    errorMessage = "Nie znaleziono zgloszenia"
+                    errorMessage = "Nie znaleziono zgłoszenia"
                 } else {
                     selectedStatus = issue?.status ?: "OPEN"
                     selectedAssigneeId = null
                 }
             }
-            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udalo sie pobrac zgloszenia" }
+            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udało się pobrać zgłoszenia" }
 
         isLoading = false
     }
@@ -114,7 +114,7 @@ fun AdminIssueDetailsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = "Szczegoly zgloszenia", style = MaterialTheme.typography.headlineSmall)
+            Text(text = "Szczegóły zgłoszenia", style = MaterialTheme.typography.headlineSmall)
             Button(onClick = onLogout) { Text("Wyloguj") }
         }
 
@@ -140,7 +140,7 @@ fun AdminIssueDetailsScreen(
                     value = currentIssue.title,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Tytul") },
+                    label = { Text("Tytuł") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -218,9 +218,9 @@ fun AdminIssueDetailsScreen(
                             IssueApiClient.updateIssueStatus(token, currentIssue.id, selectedStatus)
                                 .onSuccess { updated ->
                                     issue = updated
-                                    snackbarHostState.showSnackbar("Status zgloszenia zostal zapisany")
+                                    snackbarHostState.showSnackbar("Status zgłoszenia został zapisany")
                                 }
-                                .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udalo sie zapisac statusu" }
+                                .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udało się zapisać statusu" }
                             isSavingStatus = false
                         }
                     },
@@ -280,9 +280,9 @@ fun AdminIssueDetailsScreen(
                             IssueApiClient.assignIssue(token, currentIssue.id, assigneeId)
                                 .onSuccess { updated ->
                                     issue = updated
-                                    snackbarHostState.showSnackbar("Konserwator zostal przypisany")
+                                    snackbarHostState.showSnackbar("Konserwator został przypisany")
                                 }
-                                .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udalo sie przypisac konserwatora" }
+                                .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udało się przypisać konserwatora" }
                             isAssigning = false
                         }
                     },

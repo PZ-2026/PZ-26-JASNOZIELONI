@@ -193,7 +193,7 @@ fun LoginScreen(
                 if (isLoading) return@Button
 
                 if (login.isBlank() || password.isBlank()) {
-                    errorMessage = "Uzupelnij email i haslo"
+                    errorMessage = "Uzupełnij email i hasło"
                     return@Button
                 }
 
@@ -206,7 +206,7 @@ fun LoginScreen(
 
                     result.onSuccess { response ->
                         if (response.token.isBlank()) {
-                            errorMessage = "Backend nie zwrocil tokenu"
+                            errorMessage = "Backend nie zwrocił tokenu"
                             return@onSuccess
                         }
 
@@ -225,10 +225,10 @@ fun LoginScreen(
                         if (appRole != null) {
                             onLoginSuccess(appRole)
                         } else {
-                            errorMessage = "Nieznana rola uzytkownika: ${response.role ?: "brak"}"
+                            errorMessage = "Nieznana rola użytkownika: ${response.role ?: "brak"}"
                         }
                     }.onFailure { throwable ->
-                        errorMessage = throwable.message ?: "Nie udalo sie zalogowac"
+                        errorMessage = throwable.message ?: "Nie udało się zalogować"
                     }
                 }
             },

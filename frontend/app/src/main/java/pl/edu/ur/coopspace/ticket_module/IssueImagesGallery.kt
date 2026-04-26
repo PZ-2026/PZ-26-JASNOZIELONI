@@ -69,7 +69,7 @@ fun IssueImagesGallery(
 
         val token = AuthSessionStore.getToken(context)
         if (token.isNullOrBlank()) {
-            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            errorMessage = "Brak sesji. Zaloguj się ponownie."
             return@rememberLauncherForActivityResult
         }
 
@@ -80,7 +80,7 @@ fun IssueImagesGallery(
             for (uri in uris) {
                 val uploadResult = IssueApiClient.uploadIssueImage(token, issueId, context, uri)
                 if (uploadResult.isFailure) {
-                    errorMessage = uploadResult.exceptionOrNull()?.message ?: "Nie udalo sie dodac zdjecia"
+                    errorMessage = uploadResult.exceptionOrNull()?.message ?: "Nie udało się dodać zdjęcia"
                     break
                 }
             }
@@ -96,14 +96,14 @@ fun IssueImagesGallery(
 
         val token = AuthSessionStore.getToken(context)
         if (token.isNullOrBlank()) {
-            errorMessage = "Brak sesji. Zaloguj sie ponownie."
+            errorMessage = "Brak sesji. Zaloguj się ponownie."
             isLoading = false
             return@LaunchedEffect
         }
 
         IssueApiClient.getIssueImages(token, issueId)
             .onSuccess { images = it }
-            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udalo sie pobrac zdjec" }
+            .onFailure { throwable -> errorMessage = throwable.message ?: "Nie udało się pobrać zdjęć" }
 
         isLoading = false
     }
@@ -167,7 +167,7 @@ fun IssueImagesGallery(
                                         onClick = {
                                             val token = AuthSessionStore.getToken(context)
                                             if (token.isNullOrBlank()) {
-                                                errorMessage = "Brak sesji. Zaloguj sie ponownie."
+                                                errorMessage = "Brak sesji. Zaloguj się ponownie."
                                                 return@IconButton
                                             }
 
@@ -177,7 +177,7 @@ fun IssueImagesGallery(
 
                                                 IssueApiClient.deleteIssueImage(token, issueId, image.id)
                                                     .onFailure { throwable ->
-                                                        errorMessage = throwable.message ?: "Nie udalo sie usunac zdjecia"
+                                                        errorMessage = throwable.message ?: "Nie udało się usunąć zdjęcia"
                                                     }
 
                                                 isMutating = false

@@ -159,7 +159,7 @@ fun RaportCardItem(
             .height(120.dp)
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFCF5FD) // Jasny róż tak sam jak w poprzednich ekranach
+            containerColor = Color(0xFFFCF5FD)
         ),
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(0.5.dp, Color.Gray.copy(alpha = 0.5f))

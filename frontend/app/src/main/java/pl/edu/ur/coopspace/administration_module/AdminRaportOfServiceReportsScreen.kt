@@ -31,9 +31,9 @@ fun AdminRaportOfServiceReportsScreen(
     var periodValue by remember { mutableFloatStateOf(6f) }
     
     val categoryOptions = listOf("Wszystkie", "Hydraulika", "Elektryka", "Budowlane")
-    val statusOptions = listOf("Nowe", "W trakcie", "Zamkniete")
-    val workersOptions = listOf("Wszyscy", "(Tu z jakiejs listy wybor)")
-    val buildingsOptions = listOf("Wszystkie", "(Tu z jakiejs listy wybor)")
+    val statusOptions = listOf("Nowe", "W trakcie", "Zamknięte")
+    val workersOptions = listOf("Wszyscy", "(Tu z jakiejś listy wybór)")
+    val buildingsOptions = listOf("Wszystkie", "(Tu z jakiejś listy wybór)")
 
     Column(
         modifier = Modifier
@@ -92,7 +92,7 @@ fun AdminRaportOfServiceReportsScreen(
         // Siatka filtrów 2x2
         Row(modifier = Modifier.fillMaxWidth()) {
             SelectionBox(
-                label = "Ktegoria Usterki",
+                label = "Kategoria Usterki",
                 options = categoryOptions,
                 modifier = Modifier.weight(1f)
             )
@@ -132,7 +132,7 @@ fun AdminRaportOfServiceReportsScreen(
                 color = Color.Black
             )
             Text(
-                text = "(miesiace)",
+                text = "(miesiące)",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,

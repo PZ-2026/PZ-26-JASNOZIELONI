@@ -155,7 +155,7 @@ object IssueApiClient {
             val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
             val fileName = resolveFileName(context, uri, mimeType)
             val fileBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                ?: throw IllegalStateException("Nie udalo sie odczytac zdjecia")
+                ?: throw IllegalStateException("Nie udało się odczytać zdjęcia")
 
             val boundary = "----CoopSpaceBoundary${System.currentTimeMillis()}"
             val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
@@ -316,7 +316,7 @@ object IssueApiClient {
 
     private fun extractErrorMessage(responseBody: String): String {
         if (responseBody.isBlank()) {
-            return "Operacja nie powiodla sie"
+            return "Operacja nie powiodła się"
         }
 
         return runCatching {
@@ -324,9 +324,9 @@ object IssueApiClient {
             when {
                 json.has("message") -> json.getString("message")
                 json.has("error") -> json.getString("error")
-                else -> "Operacja nie powiodla sie"
+                else -> "Operacja nie powiodła się"
             }
-        }.getOrElse { "Operacja nie powiodla sie" }
+        }.getOrElse { "Operacja nie powiodła się" }
     }
 }
 
