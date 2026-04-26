@@ -29,6 +29,12 @@ import pl.edu.ur.coopspace.registration_module.LoginScreen
 import pl.edu.ur.coopspace.registration_module.UserRole
 import pl.edu.ur.coopspace.ticket_module.ResidentTicketsScreen
 import pl.edu.ur.coopspace.ticket_module.ServiceTicketsScreen
+import pl.edu.ur.coopspace.user_module.UserHomeScreen
+import pl.edu.ur.coopspace.user_module.UserCommunicationScreen
+import pl.edu.ur.coopspace.user_module.UserTicketsMenuScreen
+import pl.edu.ur.coopspace.user_module.UserFinancesScreen
+import pl.edu.ur.coopspace.user_module.UserAnnouncementHistoryScreen
+import pl.edu.ur.coopspace.user_module.UserDocumentsScreen
 
 @Composable
 fun CoopSpaceApp() {
@@ -60,7 +66,7 @@ fun CoopSpaceApp() {
                         UserRole.ADMINISTRATOR -> navController.navigate("admin_home") {
                             popUpTo("login") { inclusive = true }
                         }
-                        UserRole.MIESZKANIEC -> navController.navigate("resident_tickets") {
+                        UserRole.MIESZKANIEC -> navController.navigate("user_home") {
                             popUpTo("login") { inclusive = true }
                         }
                         UserRole.KONSERWATOR -> navController.navigate("service_tickets") {
@@ -387,18 +393,23 @@ fun CoopSpaceApp() {
             )
         }
 
-        composable("resident_tickets") {
+        composable(
+            "resident_tickets/{type}",
+            arguments = listOf(androidx.navigation.navArgument("type") { type = androidx.navigation.NavType.StringType })
+        ) { backStackEntry ->
+            val ticketType = backStackEntry.arguments?.getString("type") ?: "CURRENT"
             ResidentTicketsScreen(
+                ticketType = ticketType,
                 onTicketClick = { ticketId ->
-                    // Tu w przyszłości przejdziemy do szczegółów
+                    navController.navigate("resident_ticket_details/$ticketId")
                 },
-                onAddNewTicketClick = {
-                    navController.navigate("resident_new_ticket")
+                onBack = {
+                    navController.popBackStack()
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
-                        popUpTo("resident_tickets") { inclusive = true }
+                        popUpTo("user_home") { inclusive = true }
                     }
                 }
             )
@@ -406,6 +417,19 @@ fun CoopSpaceApp() {
 
         composable("resident_new_ticket") {
             pl.edu.ur.coopspace.ticket_module.ResidentNewTicketScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            "resident_ticket_details/{ticketId}",
+            arguments = listOf(androidx.navigation.navArgument("ticketId") { type = androidx.navigation.NavType.IntType })
+        ) { backStackEntry ->
+            val ticketId = backStackEntry.arguments?.getInt("ticketId") ?: 1
+            pl.edu.ur.coopspace.ticket_module.ResidentTicketDetailsScreen(
+                ticketId = ticketId.toString(),
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -438,6 +462,151 @@ fun CoopSpaceApp() {
                 }
             )
         }
+
+        composable("user_home") {
+            UserHomeScreen(
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("user_home") { inclusive = true }
+                    }
+                },
+                onNavigateToTickets = {
+                    navController.navigate("user_tickets_menu")
+                },
+                onNavigateToCommunication = {
+                    navController.navigate("user_communication")
+                },
+                onNavigateToFinances = {
+                    navController.navigate("user_finances")
+                }
+            )
+        }
+
+        composable("user_tickets_menu") {
+            UserTicketsMenuScreen(
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("user_home") { inclusive = true }
+                    }
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToAddTicket = {
+                    navController.navigate("resident_new_ticket")
+                },
+                onNavigateToCurrentTickets = {
+                    navController.navigate("resident_tickets/CURRENT")
+                },
+                onNavigateToFinishedTickets = {
+                    navController.navigate("resident_tickets/FINISHED")
+                }
+            )
+        }
+
+        composable("user_communication") {
+            UserCommunicationScreen(
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("user_home") { inclusive = true }
+                    }
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHistory = {
+                    navController.navigate("user_announcement_history")
+                },
+                onNavigateToDocuments = {
+                    navController.navigate("user_documents")
+                }
+            )
+        }
+
+        composable("user_finances") {
+            UserFinancesScreen(
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("user_home") { inclusive = true }
+                    }
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHistory = {
+                    navController.navigate("user_payment_history")
+                },
+                onGenerateReport = {
+                    navController.navigate("user_payment_details")
+                }
+            )
+        }
+
+        composable("user_payment_history") {
+            pl.edu.ur.coopspace.user_module.UserPaymentHistoryScreen(
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("user_home") { inclusive = true }
+                    }
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                onPaymentClick = {
+                    navController.navigate("user_payment_details")
+                }
+            )
+        }
+
+        composable("user_payment_details") {
+            pl.edu.ur.coopspace.user_module.UserPaymentDetailsScreen(
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("user_home") { inclusive = true }
+                    }
+                },
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("user_announcement_history") {
+            UserAnnouncementHistoryScreen(
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("user_home") { inclusive = true }
+                    }
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                onAnnouncementClick = { id ->
+                    navController.navigate("admin_announcement_details/$id") // Reusing the same details view
+                }
+            )
+        }
+
+        composable("user_documents") {
+            UserDocumentsScreen(
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("user_home") { inclusive = true }
+                    }
+                },
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }
 
@@ -448,7 +617,7 @@ private fun resolveStartDestination(token: String?, role: String?): String {
 
     return when (role?.uppercase()) {
         "ADMIN" -> "admin_home"
-        "RESIDENT" -> "resident_tickets"
+        "RESIDENT" -> "user_home"
         "MAINTAINER" -> "service_tickets"
         else -> "login"
     }

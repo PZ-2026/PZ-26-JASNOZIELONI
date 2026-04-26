@@ -6,9 +6,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
+import androidx.compose.foundation.background
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -39,8 +43,9 @@ data class Ticket(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResidentTicketsScreen(
+    ticketType: String = "CURRENT", // "CURRENT" or "FINISHED"
     onTicketClick: (Int) -> Unit, // Akcja po kliknięciu w konkretne zgłoszenie
-    onAddNewTicketClick: () -> Unit, // Akcja po kliknięciu "Dodaj nowe zgłoszenie"
+    onBack: () -> Unit, // Akcja powrotu do poprzedniego ekranu
     onLogout: () -> Unit // Dodajemy akcję wylogowania
 ) {
     val context = LocalContext.current
@@ -63,7 +68,11 @@ fun ResidentTicketsScreen(
 
         val result = IssueApiClient.getMyIssues(token)
         result.onSuccess { issues ->
-            tickets = issues.map { issue ->
+            val isFinishedView = ticketType == "FINISHED"
+            val filteredIssues = issues.filter { 
+                if (isFinishedView) it.status.uppercase() == "CLOSED" else it.status.uppercase() != "CLOSED"
+            }
+            tickets = filteredIssues.map { issue ->
                 Ticket(
                     id = issue.id,
                     title = issue.title,
@@ -97,73 +106,95 @@ fun ResidentTicketsScreen(
         }
     }
 
-    // Scaffold to "rusztowanie", które idealnie nadaje się do ekranów z pływającym przyciskiem (FAB)
-    Scaffold(
-        topBar = {
-            // Nagłówek ekranu
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "Moje zgłoszenia",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(24.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.Menu,
+                        contentDescription = "Menu",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(28.dp).clickable { /* Drawer open if any */ }
                     )
-                },
-                actions = {
-                    TextButton(onClick = onLogout) {
-                        Text("Wyloguj")
+                    
+                    Spacer(modifier = Modifier.width(16.dp))
+                    
+                    val titleText = if (ticketType == "FINISHED") "Zakończone Zgłoszenia" else "Aktualne zgłoszenia"
+                    Text(
+                        text = titleText,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(
+                        onClick = onLogout,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Text(text = "Wyloguj", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        },
-        floatingActionButton = {
-            // Przycisk "Dodaj nowe zgłoszenie" w prawym dolnym rogu
-            ExtendedFloatingActionButton(
-                onClick = onAddNewTicketClick,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Dodaj")
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Dodaj nowe zgłoszenie")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(
+                        modifier = Modifier.size(32.dp),
+                        shape = androidx.compose.foundation.shape.CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    ) {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.Person,
+                            contentDescription = "Profile",
+                            modifier = Modifier.padding(4.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = androidx.compose.ui.Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else if (errorMessage != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(24.dp),
-                contentAlignment = androidx.compose.ui.Alignment.Center
-            ) {
-                Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                items(tickets) { ticket ->
-                    TicketListItem(ticket = ticket, onClick = { onTicketClick(ticket.id) })
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (errorMessage != null) {
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    val itemColor = if (ticketType == "FINISHED") androidx.compose.ui.graphics.Color(0xFFE4B560) else androidx.compose.ui.graphics.Color(0xFF90D590)
+                    items(tickets) { ticket ->
+                        TicketListItem(ticket = ticket, backgroundColor = itemColor, onClick = { onTicketClick(ticket.id) })
+                    }
                 }
             }
         }
+        
+        pl.edu.ur.coopspace.user_module.UserBackButton(onBack = onBack)
     }
 }
 
@@ -176,39 +207,45 @@ fun String.toUiStatus(): String {
     }
 }
 
-// 2. Komponent pojedynczego wiersza listy
 @Composable
-fun TicketListItem(ticket: Ticket, onClick: () -> Unit) {
-    // Używamy gotowego komponentu ListItem z Material 3 - robi za nas całą robotę z ułożeniem!
-    ListItem(
-        headlineContent = { 
-            Text(text = ticket.title, fontWeight = FontWeight.Bold) 
-        },
-        supportingContent = { 
-            Text(text = ticket.description) 
-        },
-        overlineContent = { 
-            Text(text = ticket.status, color = MaterialTheme.colorScheme.primary) 
-        },
-        leadingContent = {
-            // Ikona po lewej stronie (zgodnie z makietą kółko z gwiazdką - tutaj używamy ikony Star)
-            Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+fun TicketListItem(ticket: Ticket, backgroundColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.background, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .background(backgroundColor)
+            .padding(vertical = 16.dp, horizontal = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${ticket.title} | ${ticket.description}",
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.8f),
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
             )
-        },
-        trailingContent = {
-            // Strzałka po prawej stronie
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Szczegóły",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        colors = ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.background
-        ),
-        modifier = Modifier.clickable { onClick() }
-    )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Szczegóły",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = androidx.compose.ui.graphics.Color.DarkGray
+                )
+                Icon(
+                    imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Szczegóły",
+                    tint = androidx.compose.ui.graphics.Color.DarkGray,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+    }
+    androidx.compose.material3.HorizontalDivider(color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.2f), thickness = 1.dp)
 }
