@@ -29,6 +29,13 @@ import pl.edu.ur.coopspace.registration_module.LoginScreen
 import pl.edu.ur.coopspace.registration_module.UserRole
 import pl.edu.ur.coopspace.ticket_module.ResidentTicketsScreen
 import pl.edu.ur.coopspace.ticket_module.ServiceTicketsScreen
+import pl.edu.ur.coopspace.maintainer_module.MaintainerHomeScreen
+import pl.edu.ur.coopspace.maintainer_module.MaintainerCommunicationMenuScreen
+import pl.edu.ur.coopspace.maintainer_module.MaintainerAnnouncementHistoryScreen
+import pl.edu.ur.coopspace.maintainer_module.MaintainerDocumentsScreen
+import pl.edu.ur.coopspace.maintainer_module.MaintainerReportsScreen
+import pl.edu.ur.coopspace.maintainer_module.MaintainerFinishedReportsScreen
+import pl.edu.ur.coopspace.maintainer_module.MaintainerReportsInProgressScreen
 
 @Composable
 fun CoopSpaceApp() {
@@ -63,7 +70,7 @@ fun CoopSpaceApp() {
                         UserRole.MIESZKANIEC -> navController.navigate("resident_tickets") {
                             popUpTo("login") { inclusive = true }
                         }
-                        UserRole.KONSERWATOR -> navController.navigate("service_tickets") {
+                        UserRole.KONSERWATOR -> navController.navigate("maintainer_home") {
                             popUpTo("login") { inclusive = true }
                         }
                     }
@@ -426,6 +433,131 @@ fun CoopSpaceApp() {
             )
         }
 
+        composable("maintainer_home") {
+            MaintainerHomeScreen(
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("maintainer_home") { inclusive = true }
+                    }
+                },
+                onNavigateToReports = {
+                    navController.navigate("maintainer_reports")
+                },
+                onNavigateToCommunication = {
+                    navController.navigate("maintainer_communication_menu")
+                },
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("maintainer_reports") {
+            MaintainerReportsScreen(
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("maintainer_home") { inclusive = true }
+                    }
+                },
+                onNavigateToCompleted = {
+                    navController.navigate("maintainer_finished_reports")
+                },
+                onNavigateToCurrent = {
+                    navController.navigate("maintainer_reports_in_progress")
+                },
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("maintainer_finished_reports") {
+            MaintainerFinishedReportsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("maintainer_home") { inclusive = true }
+                    }
+                },
+                onTicketClick = { id ->
+                    navController.navigate("service_ticket_details/$id")
+                }
+            )
+        }
+
+        composable("maintainer_reports_in_progress") {
+            MaintainerReportsInProgressScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("maintainer_home") { inclusive = true }
+                    }
+                },
+                onTicketClick = { id ->
+                    navController.navigate("service_ticket_details/$id")
+                }
+            )
+        }
+
+        composable("maintainer_communication_menu") {
+            MaintainerCommunicationMenuScreen(
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("maintainer_home") { inclusive = true }
+                    }
+                },
+                onNavigateToHistory = {
+                    navController.navigate("maintainer_announcement_history")
+                },
+                onNavigateToDocuments = {
+                    navController.navigate("maintainer_documents")
+                },
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("maintainer_announcement_history") {
+            MaintainerAnnouncementHistoryScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("maintainer_home") { inclusive = true }
+                    }
+                },
+                onAnnouncementClick = { id ->
+                    navController.navigate("admin_announcement_details/$id")
+                }
+            )
+        }
+
+        composable("maintainer_documents") {
+            MaintainerDocumentsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("maintainer_home") { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(
             "service_ticket_details/{ticketId}",
             arguments = listOf(androidx.navigation.navArgument("ticketId") { type = androidx.navigation.NavType.IntType })
@@ -449,7 +581,7 @@ private fun resolveStartDestination(token: String?, role: String?): String {
     return when (role?.uppercase()) {
         "ADMIN" -> "admin_home"
         "RESIDENT" -> "resident_tickets"
-        "MAINTAINER" -> "service_tickets"
+        "MAINTAINER" -> "maintainer_home"
         else -> "login"
     }
 }

@@ -86,11 +86,13 @@ public class IssueService {
         * Zwraca zgloszenia przypisane do aktualnego konserwatora.
      */
     @Transactional(readOnly = true)
-    public List<IssueResponse> getAssignedIssues(String currentUserEmail) {
+    public List<IssueResponse> getAssignedIssues(String currentUserEmail, IssueStatus status, Integer localId) {
         User currentUser = getCurrentUser(currentUserEmail);
 
         return issueRepository.findByMainAssigneeIdAndDeletedAtIsNullOrderByCreatedAtDesc(currentUser.getId())
                 .stream()
+                .filter(issue -> status == null || issue.getStatus() == status)
+                .filter(issue -> localId == null || issue.getLocalId().equals(localId))
                 .map(this::toResponse)
                 .toList();
     }

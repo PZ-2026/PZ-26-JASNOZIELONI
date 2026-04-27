@@ -82,7 +82,7 @@ public class AnnouncementController {
             Authentication authentication,
             @PathVariable Integer id
     ) throws IOException {
-        requireAdmin(authentication);
+        getCurrentUser(authentication);
 
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dokument nie istnieje"));
@@ -127,7 +127,7 @@ public class AnnouncementController {
 
     @GetMapping
     public ResponseEntity<List<AnnouncementResponse>> getAnnouncements(Authentication authentication) {
-        requireAdmin(authentication);
+        getCurrentUser(authentication);
 
         List<AnnouncementResponse> responses = announcementRepository.findAll()
                 .stream()
@@ -148,7 +148,7 @@ public class AnnouncementController {
     public ResponseEntity<AnnouncementResponse> getAnnouncementById(
             Authentication authentication,
             @PathVariable Integer id) {
-        requireAdmin(authentication);
+        getCurrentUser(authentication);
 
         Announcement announcement = announcementRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ogłoszenie nie istnieje"));
@@ -180,7 +180,7 @@ public class AnnouncementController {
 
     @GetMapping("/documents")
     public ResponseEntity<List<DocumentResponse>> getDocuments(Authentication authentication) {
-        requireAdmin(authentication);
+        getCurrentUser(authentication);
 
         List<DocumentResponse> responses = documentRepository.findAll()
                 .stream()
@@ -244,14 +244,18 @@ public class AnnouncementController {
     }
 
     private User requireAdmin(Authentication authentication) {
-        User currentUser = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Użytkownik niezalogowany"));
+        User currentUser = getCurrentUser(authentication);
 
         if (currentUser.getRole() != UserRole.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tylko administrator może dodawać ogłoszenia");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tylko administrator posiada uprawnienia do tej operacji");
         }
 
         return currentUser;
+    }
+
+    private User getCurrentUser(Authentication authentication) {
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Użytkownik niezalogowany"));
     }
 
     /**

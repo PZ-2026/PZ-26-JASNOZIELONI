@@ -66,9 +66,14 @@ object IssueApiClient {
         }
     }
 
-    suspend fun getAssignedIssues(token: String): Result<List<IssueDto>> = withContext(Dispatchers.IO) {
+    suspend fun getAssignedIssues(token: String, status: String? = null, localId: Int? = null): Result<List<IssueDto>> = withContext(Dispatchers.IO) {
         runCatching {
-            val response = request("GET", "/api/issues/assigned", token)
+            val queryParts = mutableListOf<String>()
+            if (!status.isNullOrBlank()) queryParts.add("status=$status")
+            if (localId != null) queryParts.add("localId=$localId")
+            
+            val query = if (queryParts.isEmpty()) "" else "?${queryParts.joinToString("&")}"
+            val response = request("GET", "/api/issues/assigned$query", token)
             parseIssues(response)
         }
     }

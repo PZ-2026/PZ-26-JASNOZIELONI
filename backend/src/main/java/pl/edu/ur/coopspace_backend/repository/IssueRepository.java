@@ -18,5 +18,6 @@ public interface IssueRepository extends JpaRepository<Issue, Integer> {
     List<Issue> findByDeletedAtIsNullOrderByCreatedAtDesc();
     List<Issue> findByCreatedByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(Integer userId);
     List<Issue> findByMainAssigneeIdAndDeletedAtIsNullOrderByCreatedAtDesc(Integer userId);
+    List<Issue> findByMainAssigneeIdAndStatusAndDeletedAtIsNullOrderByCreatedAtDesc(Integer userId, IssueStatus status);
     Optional<Issue> findByIdAndDeletedAtIsNull(Integer id);
 }
