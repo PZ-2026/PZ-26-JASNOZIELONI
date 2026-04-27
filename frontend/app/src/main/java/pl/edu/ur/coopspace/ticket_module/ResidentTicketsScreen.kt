@@ -167,15 +167,6 @@ fun ResidentTicketsScreen(
     }
 }
 
-fun String.toUiStatus(): String {
-    return when (this.uppercase()) {
-        "OPEN" -> "Nowe"
-        "IN_PROGRESS" -> "W trakcie"
-        "CLOSED" -> "Zamkniete"
-        else -> this
-    }
-}
-
 // 2. Komponent pojedynczego wiersza listy
 @Composable
 fun TicketListItem(ticket: Ticket, onClick: () -> Unit) {

@@ -71,8 +71,12 @@ public class IssueController {
         * Zwraca zgloszenia przypisane do aktualnego konserwatora.
      */
     @GetMapping("/assigned")
-    public ResponseEntity<List<IssueResponse>> getAssignedIssues(Authentication authentication) {
-        return ResponseEntity.ok(issueService.getAssignedIssues(authentication.getName()));
+    public ResponseEntity<List<IssueResponse>> getAssignedIssues(
+            Authentication authentication,
+            @RequestParam(required = false) IssueStatus status,
+            @RequestParam(required = false) Integer localId
+    ) {
+        return ResponseEntity.ok(issueService.getAssignedIssues(authentication.getName(), status, localId));
     }
 
     /**
