@@ -22,9 +22,11 @@ import pl.edu.ur.coopspace_backend.entity.UserRole;
 import pl.edu.ur.coopspace_backend.repository.IssueAssignmentRepository;
 import pl.edu.ur.coopspace_backend.repository.IssueCategoryRepository;
 import pl.edu.ur.coopspace_backend.repository.IssueImageRepository;
+import pl.edu.ur.coopspace_backend.repository.IssueCommentRepository;
 import pl.edu.ur.coopspace_backend.repository.IssueRepository;
 import pl.edu.ur.coopspace_backend.repository.IssueStatusHistoryRepository;
 import pl.edu.ur.coopspace_backend.repository.UserRepository;
+import pl.edu.ur.coopspace_backend.entity.IssueComment;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,6 +54,7 @@ public class IssueService {
     private final IssueAssignmentRepository issueAssignmentRepository;
     private final IssueImageRepository issueImageRepository;
     private final UserRepository userRepository;
+    private final IssueCommentRepository issueCommentRepository;
 
     public IssueService(
             IssueRepository issueRepository,
@@ -59,7 +62,8 @@ public class IssueService {
             IssueStatusHistoryRepository issueStatusHistoryRepository,
             IssueAssignmentRepository issueAssignmentRepository,
             IssueImageRepository issueImageRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            IssueCommentRepository issueCommentRepository
     ) {
         this.issueRepository = issueRepository;
         this.issueCategoryRepository = issueCategoryRepository;
@@ -67,6 +71,7 @@ public class IssueService {
         this.issueAssignmentRepository = issueAssignmentRepository;
         this.issueImageRepository = issueImageRepository;
         this.userRepository = userRepository;
+        this.issueCommentRepository = issueCommentRepository;
     }
 
     /**
@@ -78,7 +83,7 @@ public class IssueService {
 
         return issueRepository.findByCreatedByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(currentUser.getId())
                 .stream()
-                .map(this::toResponse)
+                .map(issue -> this.toResponse(issue, currentUser))
                 .toList();
     }
 
@@ -93,7 +98,7 @@ public class IssueService {
                 .stream()
                 .filter(issue -> status == null || issue.getStatus() == status)
                 .filter(issue -> localId == null || issue.getLocalId().equals(localId))
-                .map(this::toResponse)
+                .map(issue -> this.toResponse(issue, currentUser))
                 .toList();
     }
 
@@ -112,7 +117,7 @@ public class IssueService {
                 .filter(issue -> status == null || issue.getStatus() == status)
                 .filter(issue -> localId == null || issue.getLocalId().equals(localId))
                 .sorted(Comparator.comparing(Issue::getCreatedAt).reversed())
-                .map(this::toResponse)
+                .map(issue -> this.toResponse(issue, currentUser))
                 .toList();
     }
 
@@ -144,7 +149,7 @@ public class IssueService {
         Issue savedIssue = issueRepository.save(issue);
         saveStatusHistory(savedIssue.getId(), IssueStatus.OPEN, currentUser.getId(), now);
 
-        return toResponse(savedIssue);
+        return toResponse(savedIssue, currentUser);
     }
 
     /**
@@ -172,7 +177,20 @@ public class IssueService {
         Issue savedIssue = issueRepository.save(issue);
         saveStatusHistory(savedIssue.getId(), savedIssue.getStatus(), currentUser.getId(), now);
 
-        return toResponse(savedIssue);
+        if (request.getMaintainerComment() != null) {
+            IssueComment comment = issueCommentRepository.findByIssueIdAndUserId(issueId, currentUser.getId())
+                    .orElse(IssueComment.builder()
+                            .issueId(issueId)
+                            .userId(currentUser.getId())
+                            .createdAt(now)
+                            .build());
+            
+            comment.setContent(request.getMaintainerComment());
+            comment.setUpdatedAt(now);
+            issueCommentRepository.save(comment);
+        }
+
+        return toResponse(savedIssue, currentUser);
     }
 
     /**
@@ -211,7 +229,7 @@ public class IssueService {
                 .assignedAt(now)
                 .build());
 
-        return toResponse(issueRepository.save(issue));
+        return toResponse(issueRepository.save(issue), currentUser);
     }
 
     /**
@@ -426,7 +444,14 @@ public class IssueService {
         return getIssueImageDirectory(issueId).resolve(fileName).normalize();
     }
 
-    private IssueResponse toResponse(Issue issue) {
+    private IssueResponse toResponse(Issue issue, User currentUser) {
+        String myComment = null;
+        if (currentUser != null) {
+            myComment = issueCommentRepository.findByIssueIdAndUserId(issue.getId(), currentUser.getId())
+                    .map(IssueComment::getContent)
+                    .orElse(null);
+        }
+
         return new IssueResponse(
                 issue.getId(),
                 issue.getTitle(),
@@ -438,7 +463,8 @@ public class IssueService {
                 issue.getStatus(),
                 issue.getCreatedAt(),
                 issue.getUpdatedAt(),
-                issue.getClosedAt()
+                issue.getClosedAt(),
+                myComment
         );
     }
 }

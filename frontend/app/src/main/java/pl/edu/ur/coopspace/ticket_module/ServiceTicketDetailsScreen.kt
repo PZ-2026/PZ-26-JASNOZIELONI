@@ -77,6 +77,7 @@ fun ServiceTicketDetailsScreen(
                     errorMessage = "Nie znaleziono zgłoszenia"
                 } else {
                     selectedStatus = issue?.status ?: "OPEN"
+                    comment = issue?.maintainerComment ?: ""
                 }
             }
             .onFailure { throwable ->
@@ -259,7 +260,7 @@ fun ServiceTicketDetailsScreen(
                 OutlinedTextField(
                     value = comment,
                     onValueChange = { comment = it },
-                    placeholder = { Text("Wypełnij komentarz\n(input field)") },
+                    placeholder = { Text("Dodaj komentarz") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp),
@@ -280,7 +281,7 @@ fun ServiceTicketDetailsScreen(
                 modifier = Modifier.fillMaxWidth(0.85f)
             ) {
                 OutlinedTextField(
-                    value = selectedStatus,
+                    value = selectedStatus.toUiStatus(),
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Status zgłoszenia") },
@@ -321,7 +322,7 @@ fun ServiceTicketDetailsScreen(
                 ) {
                     statuses.forEach { status ->
                         DropdownMenuItem(
-                            text = { Text(text = status.toStatusLabel()) },
+                            text = { Text(text = status.toUiStatus()) },
                             onClick = {
                                 selectedStatus = status
                                 statusExpanded = false
@@ -348,12 +349,13 @@ fun ServiceTicketDetailsScreen(
                     errorMessage = null
 
                     coroutineScope.launch {
-                        val result = IssueApiClient.updateIssueStatus(token, issue!!.id, selectedStatus)
+                        val result = IssueApiClient.updateIssueStatus(token, issue!!.id, selectedStatus, comment)
                         isSavingStatus = false
 
                         result.onSuccess { updated ->
                             issue = updated
                             selectedStatus = updated.status
+                            comment = updated.maintainerComment ?: ""
                         }.onFailure {
                             errorMessage = it.message ?: "Nie udało się zaktualizować statusu"
                         }
@@ -373,20 +375,11 @@ fun ServiceTicketDetailsScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Zapisz status")
+                    Text("Zapisz zmiany")
                 }
             }
             
             Spacer(modifier = Modifier.height(24.dp))
         }
-    }
-}
-
-private fun String.toStatusLabel(): String {
-    return when (this.uppercase()) {
-        "OPEN" -> "Nowe"
-        "IN_PROGRESS" -> "W trakcie"
-        "CLOSED" -> "Zamkniete"
-        else -> this
     }
 }

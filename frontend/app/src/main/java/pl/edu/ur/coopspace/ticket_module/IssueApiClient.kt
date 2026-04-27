@@ -19,7 +19,8 @@ data class IssueDto(
     val description: String,
     val categoryId: Int?,
     val localId: Int?,
-    val status: String
+    val status: String,
+    val maintainerComment: String?
 )
 
 data class IssueImageDto(
@@ -126,11 +127,12 @@ object IssueApiClient {
             }
         }
 
-    suspend fun updateIssueStatus(token: String, issueId: Int, status: String): Result<IssueDto> =
+    suspend fun updateIssueStatus(token: String, issueId: Int, status: String, maintainerComment: String? = null): Result<IssueDto> =
         withContext(Dispatchers.IO) {
             runCatching {
                 val body = JSONObject()
                     .put("status", status)
+                    .put("maintainerComment", maintainerComment ?: JSONObject.NULL)
                     .toString()
 
                 val response = request("PATCH", "/api/issues/$issueId/status", token, body)
@@ -267,7 +269,8 @@ object IssueApiClient {
             description = json.optString("description", ""),
             categoryId = json.optIntOrNull("categoryId"),
             localId = json.optIntOrNull("localId"),
-            status = json.optString("status", "OPEN")
+            status = json.optString("status", "OPEN"),
+            maintainerComment = json.optStringOrNull("maintainerComment")
         )
     }
 
@@ -346,4 +349,13 @@ private fun JSONObject.optStringOrNull(name: String): String? {
 
     val value = optString(name, "")
     return value.ifBlank { null }
+}
+
+fun String.toUiStatus(): String {
+    return when (this.uppercase()) {
+        "OPEN" -> "Nowa"
+        "IN_PROGRESS" -> "W trakcie"
+        "CLOSED" -> "Zamknięte"
+        else -> this
+    }
 }
