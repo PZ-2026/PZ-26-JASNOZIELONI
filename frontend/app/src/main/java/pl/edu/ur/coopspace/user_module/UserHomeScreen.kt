@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -36,7 +37,7 @@ fun UserHomeScreen(
     val menuItems = listOf(
         UserMenuItem("Zarządzaj zgłoszeniami", Icons.Default.Build) { onNavigateToTickets() },
         UserMenuItem("Komunikacja", Icons.Default.Warning) { onNavigateToCommunication() },
-        UserMenuItem("Moje Finanse", Icons.Default.ShowChart) { onNavigateToFinances() },
+        UserMenuItem("Moje Finanse", Icons.AutoMirrored.Filled.ShowChart) { onNavigateToFinances() },
     )
 
     Column(
