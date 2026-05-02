@@ -207,6 +207,7 @@ fun String.toUiStatus(): String {
     }
 }
 
+// 2. Komponent pojedynczego wiersza listy
 @Composable
 fun TicketListItem(ticket: Ticket, backgroundColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.background, onClick: () -> Unit) {
     Box(
