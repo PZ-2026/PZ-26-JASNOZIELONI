@@ -541,7 +541,8 @@ fun CoopSpaceApp() {
                     navController.navigate("user_payment_history")
                 },
                 onGenerateReport = {
-                    navController.navigate("user_payment_details")
+                    // Navigate with dummy id 0 if report doesn't have an ID
+                    navController.navigate("user_payment_details/0")
                 }
             )
         }
@@ -557,14 +558,19 @@ fun CoopSpaceApp() {
                 onBack = {
                     navController.popBackStack()
                 },
-                onPaymentClick = {
-                    navController.navigate("user_payment_details")
+                onPaymentClick = { id ->
+                    navController.navigate("user_payment_details/$id")
                 }
             )
         }
 
-        composable("user_payment_details") {
+        composable(
+            "user_payment_details/{chargeId}",
+            arguments = listOf(androidx.navigation.navArgument("chargeId") { type = androidx.navigation.NavType.IntType })
+        ) { backStackEntry ->
+            val chargeId = backStackEntry.arguments?.getInt("chargeId") ?: 0
             pl.edu.ur.coopspace.user_module.UserPaymentDetailsScreen(
+                chargeId = chargeId,
                 onLogout = {
                     AuthSessionStore.clearSession(context)
                     navController.navigate("login") {

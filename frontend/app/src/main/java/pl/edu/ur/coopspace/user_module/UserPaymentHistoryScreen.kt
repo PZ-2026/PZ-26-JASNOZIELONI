@@ -12,21 +12,16 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class PaymentHistoryItem(
-    val id: Int,
-    val amount: String,
-    val month: String,
-    val isPaid: Boolean
-)
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,14 +30,23 @@ fun UserPaymentHistoryScreen(
     onBack: () -> Unit,
     onPaymentClick: (Int) -> Unit
 ) {
-    // Mock data based on the screenshot
-    val payments = listOf(
-        PaymentHistoryItem(1, "154.35 zł", "Kwiecień 2026", false), // Orange
-        PaymentHistoryItem(2, "145.00 zł", "Marzec 2026", true),    // Green
-        PaymentHistoryItem(3, "150.00 zł", "Luty 2026", true),
-        PaymentHistoryItem(4, "140.00 zł", "Styczeń 2026", true),
-        PaymentHistoryItem(5, "130.00 zł", "Grudzień 2025", true)
-    )
+    val context = LocalContext.current
+    var payments by remember { mutableStateOf<List<UserCharge>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        isLoading = true
+        UserFinanceApiClient.getCharges(context)
+            .onSuccess { list ->
+                payments = list
+                isLoading = false
+            }
+            .onFailure { error ->
+                errorMessage = error.message
+                isLoading = false
+            }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -107,50 +111,61 @@ fun UserPaymentHistoryScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            LazyColumn(
-                modifier = Modifier.weight(1f)
-            ) {
-                items(payments) { payment ->
-                    val itemColor = if (payment.isPaid) Color(0xFF90D590) else Color(0xFFFD9734)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onPaymentClick(payment.id) }
-                            .background(itemColor)
-                            .padding(vertical = 16.dp, horizontal = 16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+            if (isLoading) {
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (errorMessage != null) {
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text(text = "Błąd: $errorMessage", color = MaterialTheme.colorScheme.error)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(payments) { payment ->
+                        val itemColor = if (payment.isPaid) Color(0xFF90D590) else Color(0xFFFD9734)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onPaymentClick(payment.id) }
+                                .background(itemColor)
+                                .padding(vertical = 16.dp, horizontal = 16.dp)
                         ) {
-                            Text(
-                                text = "Kwota | Miesiac rachunku",
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 14.sp,
-                                color = Color.Black.copy(alpha = 0.8f),
-                                modifier = Modifier.weight(1f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val amountStr = String.format(Locale.US, "%.2f zł", payment.amount)
                                 Text(
-                                    text = "Szczegóły",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.DarkGray
+                                    text = "$amountStr | ${payment.month}",
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 14.sp,
+                                    color = Color.Black.copy(alpha = 0.8f),
+                                    modifier = Modifier.weight(1f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                    contentDescription = "Szczegóły",
-                                    tint = Color.DarkGray,
-                                    modifier = Modifier.size(16.dp)
-                                )
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "Szczegóły",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.DarkGray
+                                    )
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                        contentDescription = "Szczegóły",
+                                        tint = Color.DarkGray,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
+                        HorizontalDivider(color = Color.Black.copy(alpha = 0.2f), thickness = 1.dp)
                     }
-                    HorizontalDivider(color = Color.Black.copy(alpha = 0.2f), thickness = 1.dp)
                 }
             }
         }
