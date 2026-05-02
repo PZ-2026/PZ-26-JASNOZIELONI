@@ -10,4 +10,5 @@ import java.util.List;
 public interface IssueCommentRepository extends JpaRepository<IssueComment, Integer> {
     List<IssueComment> findByIssueId(Integer issueId);
     List<IssueComment> findByUserId(Integer userId);
+    java.util.Optional<IssueComment> findByIssueIdAndUserId(Integer issueId, Integer userId);
 }

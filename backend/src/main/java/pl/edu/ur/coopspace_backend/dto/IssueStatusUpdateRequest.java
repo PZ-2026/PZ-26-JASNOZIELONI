@@ -12,4 +12,5 @@ import pl.edu.ur.coopspace_backend.entity.IssueStatus;
 @AllArgsConstructor
 public class IssueStatusUpdateRequest {
     private IssueStatus status;
+    private String maintainerComment;
 }
