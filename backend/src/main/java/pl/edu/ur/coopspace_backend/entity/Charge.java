@@ -9,6 +9,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Monthly charge issued to a local.
+ */
 @Entity
 @Table(name = "charge")
 @Getter

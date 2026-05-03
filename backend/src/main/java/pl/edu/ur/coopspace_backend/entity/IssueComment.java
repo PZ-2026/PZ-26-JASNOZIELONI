@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * Comment attached to an issue and authored by a user.
+ */
 @Entity
 @Table(name = "issue_comment")
 @Getter

@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Request payload for assigning an issue to a maintainer.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

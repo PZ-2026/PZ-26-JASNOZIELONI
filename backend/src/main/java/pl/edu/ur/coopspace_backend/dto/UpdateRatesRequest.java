@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+/**
+ * Request and response model for payment rate values.
+ */
 @Data
 @Builder
 @NoArgsConstructor

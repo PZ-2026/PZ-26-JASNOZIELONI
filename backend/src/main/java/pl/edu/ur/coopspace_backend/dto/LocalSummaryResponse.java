@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Lightweight response model for local summaries.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

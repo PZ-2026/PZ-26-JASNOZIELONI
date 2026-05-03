@@ -8,5 +8,11 @@ import java.util.List;
 
 @Repository
 public interface AnnouncementRepository extends JpaRepository<Announcement, Integer> {
+    /**
+     * Finds announcements created by the given user id.
+     *
+     * @param userId creator user id
+     * @return announcements created by user
+     */
     List<Announcement> findByCreatedBy(Integer userId);
 }

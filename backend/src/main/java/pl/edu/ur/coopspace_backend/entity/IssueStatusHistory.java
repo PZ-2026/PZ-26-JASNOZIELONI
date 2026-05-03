@@ -7,6 +7,9 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
+/**
+ * History entry capturing issue status changes.
+ */
 @Entity
 @Table(name = "issue_status_history")
 @Getter

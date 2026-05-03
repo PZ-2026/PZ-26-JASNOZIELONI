@@ -7,6 +7,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * Response model for issue image metadata.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

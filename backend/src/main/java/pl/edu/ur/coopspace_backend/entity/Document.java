@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * File metadata for uploaded documents.
+ */
 @Entity
 @Table(name = "document")
 @Getter

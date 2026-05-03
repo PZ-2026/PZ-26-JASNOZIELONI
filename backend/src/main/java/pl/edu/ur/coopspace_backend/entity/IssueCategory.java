@@ -3,6 +3,9 @@ package pl.edu.ur.coopspace_backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * Dictionary entry for an issue category.
+ */
 @Entity
 @Table(name = "issue_category")
 @Getter

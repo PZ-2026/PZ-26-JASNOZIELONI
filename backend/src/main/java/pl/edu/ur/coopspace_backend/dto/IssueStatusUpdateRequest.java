@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pl.edu.ur.coopspace_backend.entity.IssueStatus;
 
+/**
+ * Request payload for updating the status of an issue.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

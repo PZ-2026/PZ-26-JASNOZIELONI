@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pl.edu.ur.coopspace_backend.entity.UserRole;
 
+/**
+ * Administrative view of a user record.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

@@ -8,10 +8,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+/**
+ * Maps generic server errors to a simple HTTP response body.
+ */
 @Controller
 public class CustomErrorController implements ErrorController {
 
     @GetMapping("/error")
+    /**
+     * Generic error mapping endpoint used by the servlet container.
+     *
+     * @param request the current HTTP servlet request
+     * @return a simple text response containing the HTTP status and reason
+     */
     public ResponseEntity<String> handleError(HttpServletRequest request) {
         Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         if (status != null) {

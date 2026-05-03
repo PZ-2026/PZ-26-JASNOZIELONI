@@ -80,7 +80,7 @@ public class IssueController {
     }
 
     /**
-        * Tworzy nowe zgloszenie.
+     * Tworzy nowe zgloszenie.
      */
     @PostMapping
     public ResponseEntity<IssueResponse> createIssue(

@@ -8,5 +8,11 @@ import java.util.List;
 
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, Integer> {
+    /**
+     * Returns audit logs for the specified user.
+     *
+     * @param userId user identifier
+     * @return list of audit log entries
+     */
     List<AuditLog> findByUserId(Integer userId);
 }

@@ -22,6 +22,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
+/**
+ * Provides resident-facing finance operations for charges, payments, and charge item metadata.
+ */
 public class UserFinanceService {
 
     private final ChargeRepository chargeRepository;
@@ -29,11 +32,23 @@ public class UserFinanceService {
     private final ChargeItemRepository chargeItemRepository;
     private final ChargeItemTypeRepository chargeItemTypeRepository;
 
+    /**
+     * Returns charges assigned to the given local.
+     *
+     * @param localId local identifier
+     * @return list of charges for the local
+     */
     @Transactional(readOnly = true)
     public List<Charge> getCharges(Integer localId) {
         return chargeRepository.findByLocalId(localId);
     }
 
+    /**
+     * Returns payments made for all charges linked to the given local.
+     *
+     * @param localId local identifier
+     * @return list of payments for the local
+     */
     @Transactional(readOnly = true)
     public List<Payment> getPayments(Integer localId) {
         List<Charge> charges = chargeRepository.findByLocalId(localId);
@@ -43,6 +58,12 @@ public class UserFinanceService {
                 .toList();
     }
 
+    /**
+     * Returns all charge items for charges linked to the given local.
+     *
+     * @param localId local identifier
+     * @return list of charge items for the local
+     */
     @Transactional(readOnly = true)
     public List<ChargeItem> getChargeItems(Integer localId) {
         List<Charge> charges = chargeRepository.findByLocalId(localId);
@@ -52,11 +73,23 @@ public class UserFinanceService {
                 .toList();
     }
 
+    /**
+     * Returns all available charge item types.
+     *
+     * @return list of charge item types
+     */
     @Transactional(readOnly = true)
     public List<ChargeItemType> getChargeItemTypes() {
         return chargeItemTypeRepository.findAll();
     }
 
+    /**
+     * Stores a new payment for a local, resolving the target charge when needed.
+     *
+     * @param localId local identifier
+     * @param payment payment payload
+     * @return persisted payment
+     */
     @Transactional
     public Payment makePayment(Integer localId, Payment payment) {
         if (payment.getAmount() == null || payment.getAmount().compareTo(BigDecimal.ZERO) <= 0) {

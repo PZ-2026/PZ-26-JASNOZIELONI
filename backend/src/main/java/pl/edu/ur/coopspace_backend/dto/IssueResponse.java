@@ -8,6 +8,9 @@ import pl.edu.ur.coopspace_backend.entity.IssueStatus;
 
 import java.time.LocalDateTime;
 
+/**
+ * Response model describing an issue.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

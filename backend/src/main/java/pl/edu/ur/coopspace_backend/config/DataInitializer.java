@@ -8,6 +8,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Seeds the database with initial reference data when the application starts.
+ */
 @Configuration
 public class DataInitializer {
     

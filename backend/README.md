@@ -54,6 +54,39 @@ Hasło: ala
 Przy pierwszym uruchomieniu backendu są automatycznie tworzone tabele. Następnie nastepuje uruchomienie seederów.
 Wszystkie hasła z seederów i w projekcie są zabezpieczone BCrypt.
 
+## Testy jednostkowe JUnit
+
+Testy jednostkowe (klasy do nich) znajdują się w katalogu `test`. Aby uruchomić wszystkie testy jednostkowe w systemie Windows,
+należy skorzystać z polecenia:
+```bash
+.\gradlew.bat test
+```
+
+Na Linux/macOS użyjesz:
+```bash
+./gradlew test
+```
+
+Komenda `test` uruchamia wszystkie testy w katalogu `src/test`.
+Jeśli używasz Spring Boot, to testy mogą być zarówno czysto jednostkowe, jak i integracyjne (np. z `@SpringBootTest`).
+Po wykonaniu testów jest generowany z nich automatyczny raport. Lokalizacja zapisu raportów z testów to:
+```bash
+build/reports/tests/test/index.html
+```
+
+Jeżeli nie chcesz uruchamiać wszystkich testów jednocześnie to możesz uruchomić tylko konkretną klasę testową.
+Można tego dokonać z poziomu IDE (działa w IntelliJ) lub z poziomu wiersza poleceń.
+
+Windows:
+```bash
+.\gradlew.bat test --tests "com.example.MyTest"
+```
+
+Linux/macOS:
+```bash
+./grandlew test --tests "com.example.MyTest"
+```
+
 ## Struktura katalogów backendu
 
 ```

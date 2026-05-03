@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Request payload for creating a new announcement.
+ */
 @Data
 @Builder
 @NoArgsConstructor

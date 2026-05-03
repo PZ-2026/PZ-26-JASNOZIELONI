@@ -3,6 +3,9 @@ package pl.edu.ur.coopspace_backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * Reference type describing a billable charge item.
+ */
 @Entity
 @Table(name = "charge_item_type")
 @Getter
