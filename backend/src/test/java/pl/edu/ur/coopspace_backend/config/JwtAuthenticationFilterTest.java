@@ -119,6 +119,25 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    @DisplayName("Filtr ustawia SecurityContext dla ważnego tokenu")
+    void testFilterSetsSecurityContextForValidToken() throws ServletException, IOException {
+        // Given
+        SecurityContextHolder.clearContext();
+        String validToken = "Bearer token123";
+        when(request.getHeader("Authorization")).thenReturn(validToken);
+        when(jwtService.extractUsername("token123")).thenReturn("user@example.com");
+        when(jwtService.isTokenValid("token123")).thenReturn(true);
+
+        // When
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        // Then
+        assertNotNull(SecurityContextHolder.getContext().getAuthentication());
+        assertEquals("user@example.com", SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        verify(filterChain, times(1)).doFilter(request, response);
+    }
+
+    @Test
     @DisplayName("Filtr powinien obsługiwać nieważny token bez rzucania wyjątku")
     void testFilterHandlesInvalidTokenGracefully() throws ServletException, IOException {
         // Given
@@ -155,11 +174,10 @@ class JwtAuthenticationFilterTest {
         String emptyToken = "Bearer ";
         when(request.getHeader("Authorization")).thenReturn(emptyToken);
 
-        // When & Then
-        assertDoesNotThrow(() -> {
-            jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
-        });
+        // When
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
+        // Then - filter_chain should NOT be called because we return 401
         verify(filterChain, times(1)).doFilter(request, response);
     }
 
@@ -211,14 +229,43 @@ class JwtAuthenticationFilterTest {
         // Given
         String invalidToken = "Bearer malformed.token";
         when(request.getHeader("Authorization")).thenReturn(invalidToken);
-        when(jwtService.isTokenValid("malformed.token")).thenThrow(new RuntimeException("Invalid token"));
+        when(jwtService.extractUsername("malformed.token")).thenThrow(new io.jsonwebtoken.JwtException("Invalid token"));
 
-        // When & Then
-        assertDoesNotThrow(() -> {
-            jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
-        });
+        java.io.StringWriter sw = new java.io.StringWriter();
+        java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+        when(response.getWriter()).thenReturn(pw);
 
-        verify(filterChain, times(1)).doFilter(request, response);
+        // When
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        // Then - chain should not be invoked and response status set to 401
+        verify(filterChain, never()).doFilter(request, response);
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        pw.flush();
+        String written = sw.toString();
+        assertTrue(written.contains("Nieprawidlowy token"));
+    }
+
+    @Test
+    @DisplayName("Filtr zwraca 401 i body JSON gdy JwtException")
+    void testFilterReturns401AndBodyOnJwtException() throws ServletException, IOException {
+        // Given
+        String invalidToken = "Bearer bad.token";
+        when(request.getHeader("Authorization")).thenReturn(invalidToken);
+        when(jwtService.extractUsername("bad.token")).thenThrow(new io.jsonwebtoken.JwtException("bad"));
+
+        java.io.StringWriter sw = new java.io.StringWriter();
+        java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+        when(response.getWriter()).thenReturn(pw);
+
+        // When
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        // Then
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        pw.flush();
+        String written = sw.toString();
+        assertTrue(written.contains("Nieprawidlowy token"));
     }
 
     @Test

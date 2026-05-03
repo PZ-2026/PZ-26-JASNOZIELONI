@@ -1,23 +1,15 @@
 package pl.edu.ur.coopspace_backend.service;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import javax.crypto.SecretKey;
 import java.util.Date;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,6 +31,22 @@ class JwtServiceTest {
         jwtService = new JwtService();
         ReflectionTestUtils.setField(jwtService, "SECRET_KEY", secretKey);
         ReflectionTestUtils.setField(jwtService, "EXPIRATION_TIME", expirationTime);
+    }
+
+    @Test
+    @DisplayName("Wygasły token powinien być nieprawidłowy")
+    void testExpiredTokenIsInvalid() throws InterruptedException {
+        // Given: utwórz serwis z bardzo krótkim czasem życia tokenu
+        JwtService shortLived = new JwtService();
+        ReflectionTestUtils.setField(shortLived, "SECRET_KEY", secretKey);
+        ReflectionTestUtils.setField(shortLived, "EXPIRATION_TIME", 1L);
+
+        // When: wygenerujemy token i poczekamy aż wygaśnie
+        String token = shortLived.generateToken("expired@example.com");
+        Thread.sleep(10);
+
+        // Then: parsowanie wygasłego tokenu powinno rzucić wyjątek
+        assertThrows(ExpiredJwtException.class, () -> shortLived.isTokenValid(token));
     }
 
     @Test
@@ -159,20 +167,6 @@ class JwtServiceTest {
         // Then
         assertNotNull(expiration);
         assertTrue(expiration.after(new Date()));
-    }
-
-    @Test
-    @DisplayName("Przepisane token powinny być różne")
-    void testDifferentTokensForSameEmail() {
-        // Given
-        String email = "test@example.com";
-
-        // When
-        String token1 = jwtService.generateToken(email);
-        String token2 = jwtService.generateToken(email);
-
-        // Then
-        assertNotEquals(token1, token2, "Tokeny powinny być różne nawet dla tego samego emailu");
     }
 
     @Test

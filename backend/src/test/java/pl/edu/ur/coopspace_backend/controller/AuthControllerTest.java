@@ -197,4 +197,16 @@ class AuthControllerTest {
         assertNotNull(authController);
         assertNotNull(authService);
     }
+
+    @Test
+    @DisplayName("Login z pustym/popsutym żądaniem powinien rzucić wyjątek (bad request)")
+    void testLoginWithMalformedRequestThrows() {
+        // Given
+        when(authService.login(null)).thenThrow(new IllegalArgumentException("Malformed request"));
+
+        // When & Then
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> authController.login(null));
+        assertEquals("Malformed request", ex.getMessage());
+        verify(authService, times(1)).login(null);
+    }
 }

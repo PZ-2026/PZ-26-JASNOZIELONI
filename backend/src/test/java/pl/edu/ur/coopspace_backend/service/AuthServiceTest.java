@@ -281,4 +281,75 @@ class AuthServiceTest {
         assertTrue(true); // Użytkownik jest zalogowany, więc nie będzie sprawdzania isActive w logice biznesowej
         assertNotNull(response.getToken());
     }
+
+    @Test
+    @DisplayName("Login propaguje wyjątek z repozytorium")
+    void testLoginPropagatesRepositoryException() {
+        // Given
+        when(userRepository.findByEmail("dberror@example.com")).thenThrow(new RuntimeException("DB error"));
+
+        LoginRequest req = new LoginRequest();
+        req.setEmail("dberror@example.com");
+        req.setPassword("pw");
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> authService.login(req));
+        assertEquals("DB error", ex.getMessage());
+        verify(userRepository, times(1)).findByEmail("dberror@example.com");
+    }
+
+    @Test
+    @DisplayName("Rejestracja z brakującym emailem powinna rzucić wyjątek")
+    void testRegisterWithMissingEmailThrows() {
+        // Given
+        RegisterRequest badRequest = new RegisterRequest();
+        badRequest.setEmail(null);
+        badRequest.setPassword("pw");
+        badRequest.setFirstName("A");
+        badRequest.setLastName("B");
+        badRequest.setPhoneNumber("123");
+
+        when(userRepository.existsByEmail(null)).thenThrow(new RuntimeException("Email jest wymagany"));
+
+        // When & Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> authService.register(badRequest));
+        assertEquals("Email jest wymagany", ex.getMessage());
+        verify(userRepository, times(1)).existsByEmail(null);
+    }
+
+    @Test
+    @DisplayName("Rejestracja powinna hashować hasło przed zapisem")
+    void testRegisterCallsPasswordEncoder() {
+        // Given
+        when(userRepository.existsByEmail("secure@example.com")).thenReturn(false);
+        when(passwordEncoder.encode("plainPassword")).thenReturn("hashed");
+
+        RegisterRequest req = new RegisterRequest();
+        req.setEmail("secure@example.com");
+        req.setPassword("plainPassword");
+        req.setFirstName("F");
+        req.setLastName("L");
+        req.setPhoneNumber("000");
+
+        User saved = User.builder()
+                .id(10)
+                .email("secure@example.com")
+                .passwordHash("hashed")
+                .firstName("F")
+                .lastName("L")
+                .phoneNumber("000")
+                .role(UserRole.RESIDENT)
+                .isActive(true)
+                .build();
+
+        when(userRepository.save(any(User.class))).thenReturn(saved);
+        when(jwtService.generateToken("secure@example.com")).thenReturn("token-secure");
+
+        // When
+        authService.register(req);
+
+        // Then
+        verify(passwordEncoder, times(1)).encode("plainPassword");
+        verify(userRepository, times(1)).save(argThat(u -> "hashed".equals(u.getPasswordHash())));
+    }
 }
