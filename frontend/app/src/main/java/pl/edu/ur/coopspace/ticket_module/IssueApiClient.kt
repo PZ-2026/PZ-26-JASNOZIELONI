@@ -353,7 +353,7 @@ private fun JSONObject.optStringOrNull(name: String): String? {
 
 fun String.toUiStatus(): String {
     return when (this.uppercase()) {
-        "OPEN" -> "Nowa"
+        "OPEN" -> "Nowe"
         "IN_PROGRESS" -> "W trakcie"
         "CLOSED" -> "Zamknięte"
         else -> this
