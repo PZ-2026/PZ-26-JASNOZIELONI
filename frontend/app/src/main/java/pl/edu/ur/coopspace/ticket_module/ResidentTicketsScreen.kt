@@ -186,7 +186,7 @@ fun ResidentTicketsScreen(
                 LazyColumn(
                     modifier = Modifier.weight(1f)
                 ) {
-                    val itemColor = if (ticketType == "FINISHED") androidx.compose.ui.graphics.Color(0xFFE4B560) else androidx.compose.ui.graphics.Color(0xFF90D590)
+                    val itemColor = if (ticketType == "FINISHED") androidx.compose.ui.graphics.Color(0xFF90D590) else androidx.compose.ui.graphics.Color(0xFFE4B560)
                     items(tickets) { ticket ->
                         TicketListItem(ticket = ticket, backgroundColor = itemColor, onClick = { onTicketClick(ticket.id) })
                     }
@@ -198,14 +198,7 @@ fun ResidentTicketsScreen(
     }
 }
 
-fun String.toUiStatus(): String {
-    return when (this.uppercase()) {
-        "OPEN" -> "Nowe"
-        "IN_PROGRESS" -> "W trakcie"
-        "CLOSED" -> "Zamkniete"
-        else -> this
-    }
-}
+
 
 // 2. Komponent pojedynczego wiersza listy
 @Composable
