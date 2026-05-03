@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * Assignment history entry for an issue.
+ */
 @Entity
 @Table(name = "issue_assignment")
 @Getter

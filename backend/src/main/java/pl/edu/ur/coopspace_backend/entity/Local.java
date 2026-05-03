@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * Represents a single apartment or local within a building.
+ */
 @Entity
 @Table(name = "local", uniqueConstraints = @UniqueConstraint(columnNames = {"building_id", "number"}))
 @Getter

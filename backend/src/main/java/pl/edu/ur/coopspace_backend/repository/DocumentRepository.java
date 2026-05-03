@@ -8,5 +8,11 @@ import java.util.List;
 
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Integer> {
+    /**
+     * Lists documents uploaded by a specific user.
+     *
+     * @param userId uploader id
+     * @return list of documents
+     */
     List<Document> findByUploadedBy(Integer userId);
 }

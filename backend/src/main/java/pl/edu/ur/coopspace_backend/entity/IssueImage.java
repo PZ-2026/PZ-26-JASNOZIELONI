@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * Metadata for an image attached to an issue.
+ */
 @Entity
 @Table(name = "issue_image")
 @Getter

@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pl.edu.ur.coopspace_backend.entity.UserRole;
 
+/**
+ * Request payload used by administrators to create a new user.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

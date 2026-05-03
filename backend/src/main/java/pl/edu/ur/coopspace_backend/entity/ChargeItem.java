@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
+/**
+ * Single line item within a charge.
+ */
 @Entity
 @Table(name = "charge_item")
 @Getter

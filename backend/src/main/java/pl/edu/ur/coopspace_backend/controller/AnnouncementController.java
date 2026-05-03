@@ -28,6 +28,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Provides announcement and document endpoints for authenticated users and administrators.
+ */
 @RestController
 @RequestMapping("/api/announcements")
 @CrossOrigin(origins = "*")
@@ -43,6 +46,13 @@ public class AnnouncementController {
         this.documentRepository = documentRepository;
     }
 
+    /**
+     * Creates a new announcement. Administrator-only endpoint.
+     *
+     * @param authentication current user authentication
+     * @param request announcement creation data
+     * @return created announcement metadata
+     */
     @PostMapping
     public ResponseEntity<AnnouncementResponse> createAnnouncement(
             Authentication authentication,
@@ -104,6 +114,13 @@ public class AnnouncementController {
                 .body(resource);
     }
 
+        /**
+         * Deletes a stored document. Administrator-only endpoint.
+         *
+         * @param authentication current user authentication
+         * @param id document identifier
+         * @return no content on success
+         */
     @DeleteMapping("/documents/{id}")
     public ResponseEntity<Void> deleteDocument(
             Authentication authentication,
@@ -125,6 +142,12 @@ public class AnnouncementController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Returns all announcements visible to the authenticated user.
+     *
+     * @param authentication current user authentication
+     * @return list of announcements
+     */
     @GetMapping
     public ResponseEntity<List<AnnouncementResponse>> getAnnouncements(Authentication authentication) {
         getCurrentUser(authentication);
@@ -144,6 +167,13 @@ public class AnnouncementController {
         return ResponseEntity.ok(responses);
     }
 
+    /**
+     * Returns a single announcement by id.
+     *
+     * @param authentication current user authentication
+     * @param id announcement identifier
+     * @return announcement details
+     */
     @GetMapping("/{id}")
     public ResponseEntity<AnnouncementResponse> getAnnouncementById(
             Authentication authentication,
@@ -164,6 +194,13 @@ public class AnnouncementController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Deletes multiple announcements by id list. Administrator-only endpoint.
+     *
+     * @param authentication current user authentication
+     * @param ids list of announcement ids to delete
+     * @return no content on success
+     */
     @DeleteMapping
     public ResponseEntity<Void> deleteAnnouncements(
             Authentication authentication,
@@ -178,6 +215,12 @@ public class AnnouncementController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Lists stored document metadata for authenticated users.
+     *
+     * @param authentication current user authentication
+     * @return list of documents
+     */
     @GetMapping("/documents")
     public ResponseEntity<List<DocumentResponse>> getDocuments(Authentication authentication) {
         getCurrentUser(authentication);
@@ -197,6 +240,13 @@ public class AnnouncementController {
         return ResponseEntity.ok(responses);
     }
 
+    /**
+     * Uploads a document file and stores its metadata. Administrator-only endpoint.
+     *
+     * @param authentication current user authentication
+     * @param file multipart file to upload
+     * @return stored document metadata
+     */
     @PostMapping(value = "/documents", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DocumentResponse> uploadDocument(
             Authentication authentication,
@@ -243,6 +293,10 @@ public class AnnouncementController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Sprawdza czy uzytkownik jest administratorem.
+     * Jest to uzywane do weryfikacji uprawnien do danych akcji.
+     */
     private User requireAdmin(Authentication authentication) {
         User currentUser = getCurrentUser(authentication);
 

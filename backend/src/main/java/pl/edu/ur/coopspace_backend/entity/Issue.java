@@ -7,6 +7,9 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
+/**
+ * Main issue entity representing a reported problem.
+ */
 @Entity
 @Table(name = "issue")
 @Getter

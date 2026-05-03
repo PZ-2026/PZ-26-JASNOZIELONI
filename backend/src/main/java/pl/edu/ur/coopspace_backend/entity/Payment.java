@@ -7,6 +7,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Payment record associated with a charge.
+ */
 @Entity
 @Table(name = "payment")
 @Getter

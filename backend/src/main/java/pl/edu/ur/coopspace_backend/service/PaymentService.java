@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.edu.ur.coopspace_backend.dto.UpdateRatesRequest;
 import pl.edu.ur.coopspace_backend.entity.Charge;
 import pl.edu.ur.coopspace_backend.entity.ChargeItem;
-import pl.edu.ur.coopspace_backend.entity.ChargeItemType;
 import pl.edu.ur.coopspace_backend.repository.ChargeItemRepository;
 import pl.edu.ur.coopspace_backend.repository.ChargeItemTypeRepository;
 import pl.edu.ur.coopspace_backend.repository.ChargeRepository;
@@ -15,6 +14,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Contains business logic for payment charge rates and their history.
+ */
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -23,6 +25,12 @@ public class PaymentService {
     private final ChargeItemRepository chargeItemRepository;
     private final ChargeItemTypeRepository chargeItemTypeRepository;
 
+    /**
+     * Updates active charge rates based on the provided payload.
+     * For each active charge, new charge items are added when a rate changes.
+     *
+     * @param request new rates to apply
+     */
     @Transactional
     public void updateRates(UpdateRatesRequest request) {
         LocalDate now = LocalDate.now();
@@ -34,6 +42,11 @@ public class PaymentService {
         updateRateForType("Gaz", request.getGasRate(), activeCharges);
     }
 
+    /**
+     * Reads the latest unit rates for known charge types and returns them.
+     *
+     * @return current rates wrapped in an UpdateRatesRequest DTO
+     */
     @Transactional(readOnly = true)
     public UpdateRatesRequest getCurrentRates() {
         return UpdateRatesRequest.builder()

@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Request payload used to create a new issue.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

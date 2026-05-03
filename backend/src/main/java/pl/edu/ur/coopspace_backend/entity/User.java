@@ -7,6 +7,9 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
+/**
+ * Application user record with authentication and profile data.
+ */
 @Entity
 @Table(name = "\"user\"")
 @Getter

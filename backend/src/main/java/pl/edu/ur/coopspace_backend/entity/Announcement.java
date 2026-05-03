@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * Announcement published to all users.
+ */
 @Entity
 @Table(name = "announcement")
 @Getter

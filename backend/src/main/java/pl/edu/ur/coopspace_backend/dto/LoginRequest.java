@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Request payload for user login.
+ */
 @Getter
 @Setter
 @NoArgsConstructor

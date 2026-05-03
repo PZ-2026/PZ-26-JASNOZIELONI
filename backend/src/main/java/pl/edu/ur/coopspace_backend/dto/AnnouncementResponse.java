@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
+/**
+ * Response model for announcement details.
+ */
 @Data
 @Builder
 @NoArgsConstructor

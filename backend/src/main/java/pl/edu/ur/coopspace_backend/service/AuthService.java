@@ -10,6 +10,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implements authentication and registration workflows.
+ */
 @Service
 @Transactional
 public class AuthService {
@@ -24,6 +27,12 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
+    /**
+     * Authenticates a user with provided credentials.
+     *
+     * @param request login request containing email and password
+     * @return authentication response with JWT and user details
+     */
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
@@ -42,6 +51,13 @@ public class AuthService {
         return mapToAuthResponse(user, token);
     }
 
+
+    /**
+     * Registers a new resident account and returns an authentication response.
+     *
+     * @param request registration data for the new user
+     * @return authentication response with JWT and new user details
+     */
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email jest już zarejestrowany");

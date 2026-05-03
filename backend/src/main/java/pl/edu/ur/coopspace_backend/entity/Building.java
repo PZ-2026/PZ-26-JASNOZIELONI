@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * Represents a residential building.
+ */
 @Entity
 @Table(name = "building")
 @Getter

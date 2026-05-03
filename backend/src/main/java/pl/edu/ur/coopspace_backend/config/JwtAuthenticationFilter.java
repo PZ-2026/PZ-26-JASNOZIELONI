@@ -16,6 +16,9 @@ import pl.edu.ur.coopspace_backend.service.JwtService;
 import java.io.IOException;
 import java.util.Collections;
 
+/**
+ * Extracts and validates JWTs from incoming requests and populates the security context.
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
