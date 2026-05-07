@@ -88,7 +88,7 @@ fun CoopSpaceApp() {
         composable("admin_contact") {
             AdminContactScreen(
                 onBackClick = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 }
             )
         }
@@ -122,7 +122,7 @@ fun CoopSpaceApp() {
         composable("admin_announcements") {
             AdminAnnouncementScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -145,7 +145,7 @@ fun CoopSpaceApp() {
         composable("admin_add_announcement") {
             AdminAddAnnouncementScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -159,7 +159,7 @@ fun CoopSpaceApp() {
         composable("admin_history_announcement") {
             AdminViewAnnouncementHistoryScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -181,7 +181,7 @@ fun CoopSpaceApp() {
             AdminAnnouncementDetailsScreen(
                 announcementId = announcementId,
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -195,7 +195,7 @@ fun CoopSpaceApp() {
         composable("admin_announcement_documents") {
             AdminViewAnnouncementDocumentsScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -209,7 +209,7 @@ fun CoopSpaceApp() {
         composable("admin_users") {
             AdminUsersScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -229,7 +229,7 @@ fun CoopSpaceApp() {
         composable("admin_resident_users") {
             AdminResidentUsersScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -243,7 +243,7 @@ fun CoopSpaceApp() {
         composable("admin_service_users") {
             AdminServiceUsersScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -257,7 +257,7 @@ fun CoopSpaceApp() {
         composable("admin_reports") {
             AdminReportsScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -280,7 +280,7 @@ fun CoopSpaceApp() {
         composable("admin_new_report") {
             pl.edu.ur.coopspace.administration_module.AdminNewReportScreen(
                 onBackClick = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 }
             )
         }
@@ -288,7 +288,7 @@ fun CoopSpaceApp() {
         composable("admin_reports_in_progress") {
             AdminReportsInProgressScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -305,7 +305,7 @@ fun CoopSpaceApp() {
         composable("admin_finished_reports") {
             AdminFinishedReportsScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -326,7 +326,7 @@ fun CoopSpaceApp() {
             val ticketId = backStackEntry.arguments?.getInt("ticketId") ?: 1
             AdminIssueDetailsScreen(
                 ticketId = ticketId,
-                onBackClick = { navController.popBackStack() },
+                onBackClick = { navController.safePopBackOrFinish(context) },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
                     navController.navigate("login") {
@@ -339,7 +339,7 @@ fun CoopSpaceApp() {
         composable("admin_payment_settings") {
             AdminPaymentSettingsScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -353,7 +353,7 @@ fun CoopSpaceApp() {
         composable("admin_raports") {
             AdminRaportsScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -376,7 +376,7 @@ fun CoopSpaceApp() {
         composable("admin_generate_statistic_raport") {
             AdminGenerateStatisticRaportScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -390,7 +390,7 @@ fun CoopSpaceApp() {
         composable("admin_raport_service_reports") {
             AdminRaportOfServiceReportsScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -412,7 +412,7 @@ fun CoopSpaceApp() {
                     navController.navigate("resident_ticket_details/$ticketId")
                 },
                 onBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -426,7 +426,7 @@ fun CoopSpaceApp() {
         composable("resident_new_ticket") {
             pl.edu.ur.coopspace.ticket_module.ResidentNewTicketScreen(
                 onBackClick = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 }
             )
         }
@@ -439,7 +439,7 @@ fun CoopSpaceApp() {
             pl.edu.ur.coopspace.ticket_module.ResidentTicketDetailsScreen(
                 ticketId = ticketId.toString(),
                 onBackClick = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 }
             )
         }
@@ -473,7 +473,7 @@ fun CoopSpaceApp() {
                     navController.navigate("maintainer_communication_menu")
                 },
                 onBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 }
             )
         }
@@ -493,7 +493,7 @@ fun CoopSpaceApp() {
                     navController.navigate("maintainer_reports_in_progress")
                 },
                 onBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 }
             )
         }
@@ -501,7 +501,7 @@ fun CoopSpaceApp() {
         composable("maintainer_finished_reports") {
             MaintainerFinishedReportsScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -518,7 +518,7 @@ fun CoopSpaceApp() {
         composable("maintainer_reports_in_progress") {
             MaintainerReportsInProgressScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -547,7 +547,7 @@ fun CoopSpaceApp() {
                     navController.navigate("maintainer_documents")
                 },
                 onBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 }
             )
         }
@@ -555,7 +555,7 @@ fun CoopSpaceApp() {
         composable("maintainer_announcement_history") {
             MaintainerAnnouncementHistoryScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -572,7 +572,7 @@ fun CoopSpaceApp() {
         composable("maintainer_documents") {
             MaintainerDocumentsScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onLogout = {
                     AuthSessionStore.clearSession(context)
@@ -591,7 +591,7 @@ fun CoopSpaceApp() {
             pl.edu.ur.coopspace.ticket_module.ServiceTicketDetailsScreen(
                 ticketId = ticketId.toString(),
                 onBackClick = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 }
             )
         }
@@ -625,7 +625,7 @@ fun CoopSpaceApp() {
                     }
                 },
                 onBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onNavigateToAddTicket = {
                     navController.navigate("resident_new_ticket")
@@ -648,7 +648,7 @@ fun CoopSpaceApp() {
                     }
                 },
                 onBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onNavigateToHistory = {
                     navController.navigate("user_announcement_history")
@@ -668,7 +668,7 @@ fun CoopSpaceApp() {
                     }
                 },
                 onBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onNavigateToHistory = {
                     navController.navigate("user_payment_history")
@@ -689,7 +689,7 @@ fun CoopSpaceApp() {
                     }
                 },
                 onBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onPaymentClick = { id ->
                     navController.navigate("user_payment_details/$id")
@@ -711,7 +711,7 @@ fun CoopSpaceApp() {
                     }
                 },
                 onBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 }
             )
         }
@@ -725,7 +725,7 @@ fun CoopSpaceApp() {
                     }
                 },
                 onBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 },
                 onAnnouncementClick = { id ->
                     navController.navigate("admin_announcement_details/$id") // Reusing the same details view
@@ -742,7 +742,7 @@ fun CoopSpaceApp() {
                     }
                 },
                 onBack = {
-                    navController.popBackStack()
+                    navController.safePopBackOrFinish(context)
                 }
             )
         }
