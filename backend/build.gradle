@@ -50,6 +50,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'io.jsonwebtoken:jjwt-api:0.13.0'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation files('libs/PZ_PDF-1.0.jar') // import biblioteki PDF z wlasnymi funkcjami do generowania raportow
+	implementation 'com.itextpdf:itext7-core:8.0.3' // iText dla generowania PDF
+	implementation 'org.slf4j:slf4j-api:2.0.7' // do logow dla iTexta
 }
 
 tasks.named('test') {
