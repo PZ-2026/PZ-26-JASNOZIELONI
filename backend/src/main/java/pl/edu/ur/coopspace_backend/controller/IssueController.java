@@ -4,6 +4,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,6 +26,7 @@ import pl.edu.ur.coopspace_backend.dto.IssueResponse;
 import pl.edu.ur.coopspace_backend.dto.IssueStatusUpdateRequest;
 import pl.edu.ur.coopspace_backend.entity.IssueStatus;
 import pl.edu.ur.coopspace_backend.service.IssueService;
+import pl.edu.ur.coopspace_backend.service.RepairProtocolService;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,9 +44,11 @@ import java.util.List;
 public class IssueController {
 
     private final IssueService issueService;
+    private final RepairProtocolService repairProtocolService;
 
-    public IssueController(IssueService issueService) {
+    public IssueController(IssueService issueService, RepairProtocolService repairProtocolService) {
         this.issueService = issueService;
+        this.repairProtocolService = repairProtocolService;
     }
 
     /**
@@ -174,6 +178,24 @@ public class IssueController {
             @RequestBody IssueAssignRequest request
     ) {
         return ResponseEntity.ok(issueService.assignIssue(authentication.getName(), issueId, request));
+    }
+
+    /**
+    * Generuje protokol naprawy w formacie PDF.
+     */
+    @GetMapping(value = "/{issueId}/repair-protocol", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<Resource> downloadRepairProtocol(
+        Authentication authentication,
+        @PathVariable Integer issueId
+    ) {
+    RepairProtocolService.RepairProtocolResult result = repairProtocolService
+        .generateRepairProtocol(authentication.getName(), issueId);
+
+    Resource resource = new FileSystemResource(result.filePath());
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_PDF)
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + result.fileName() + "\"")
+        .body(resource);
     }
 
     /**

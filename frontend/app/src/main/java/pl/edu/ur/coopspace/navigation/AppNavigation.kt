@@ -22,6 +22,7 @@ import pl.edu.ur.coopspace.administration_module.AdminPaymentSettingsScreen
 import pl.edu.ur.coopspace.administration_module.AdminRaportsScreen
 import pl.edu.ur.coopspace.administration_module.AdminRaportOfServiceReportsScreen
 import pl.edu.ur.coopspace.administration_module.AdminGenerateStatisticRaportScreen
+import pl.edu.ur.coopspace.administration_module.AdminRepairProtocolsScreen
 import pl.edu.ur.coopspace.administration_module.AdminIssueDetailsScreen
 import pl.edu.ur.coopspace.auth.AuthSessionStore
 import pl.edu.ur.coopspace.registration_module.AdminContactScreen
@@ -364,11 +365,25 @@ fun CoopSpaceApp() {
                 onNavigateToServiceReportsRaport = {
                     navController.navigate("admin_raport_service_reports")
                 },
-                onNavigateToFinishedReports = {
-                    navController.navigate("admin_finished_reports")
+                onNavigateToRepairProtocols = {
+                    navController.navigate("admin_repair_protocols")
                 },
                 onNavigateToStatisticRaport = {
                     navController.navigate("admin_generate_statistic_raport")
+                }
+            )
+        }
+
+        composable("admin_repair_protocols") {
+            AdminRepairProtocolsScreen(
+                onNavigateBack = {
+                    navController.safePopBackOrFinish(context)
+                },
+                onLogout = {
+                    AuthSessionStore.clearSession(context)
+                    navController.navigate("login") {
+                        popUpTo("admin_home") { inclusive = true }
+                    }
                 }
             )
         }

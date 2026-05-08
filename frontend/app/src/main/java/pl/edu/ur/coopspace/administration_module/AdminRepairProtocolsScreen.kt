@@ -1,18 +1,18 @@
-package pl.edu.ur.coopspace.maintainer_module
+package pl.edu.ur.coopspace.administration_module
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,16 +23,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import android.widget.Toast
 import pl.edu.ur.coopspace.auth.AuthSessionStore
 import pl.edu.ur.coopspace.ticket_module.IssueApiClient
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MaintainerFinishedReportsScreen(
+fun AdminRepairProtocolsScreen(
     onNavigateBack: () -> Unit,
-    onLogout: () -> Unit,
-    onTicketClick: (Int) -> Unit
+    onLogout: () -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -53,8 +51,7 @@ fun MaintainerFinishedReportsScreen(
             return
         }
 
-        // Fetch ONLY assigned issues with status CLOSED
-        IssueApiClient.getAssignedIssues(token, status = "CLOSED", localId = localId)
+        IssueApiClient.getAllIssues(token, status = "CLOSED", localId = localId)
             .onSuccess { issues ->
                 reports = issues.map { issue ->
                     issue.id to "${issue.title} | Lokal ${issue.localId ?: "-"}"
@@ -83,7 +80,6 @@ fun MaintainerFinishedReportsScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Nagłówek
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -94,16 +90,14 @@ fun MaintainerFinishedReportsScreen(
                     imageVector = Icons.Default.Menu,
                     contentDescription = "Menu",
                     tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clickable { /* Opcjonalne */ }
+                    modifier = Modifier.size(28.dp)
                 )
-                
+
                 Spacer(modifier = Modifier.width(16.dp))
-                
+
                 Text(
-                    text = "Moje Zakończone Zgłoszenia",
-                    fontSize = 18.sp,
+                    text = "Protokoły Napraw",
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -122,22 +116,28 @@ fun MaintainerFinishedReportsScreen(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = "Profil",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
-                    modifier = Modifier.size(32.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(50)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Build,
+                        contentDescription = "Profil",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Pole wyszukiwania
         TextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Wyszukaj w zgłoszeniach", color = Color.Gray) },
+            placeholder = { Text("Wyszukaj zgłoszenie", color = Color.Gray) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Menu,
@@ -182,17 +182,19 @@ fun MaintainerFinishedReportsScreen(
             Button(
                 onClick = {
                     val localParam = localFilterText.takeIf { it.isNotBlank() }?.toIntOrNull()
+                    if (localFilterText.isNotBlank() && localParam == null) {
+                        errorMessage = "Numer lokalu musi być liczbą"
+                        return@Button
+                    }
+
                     coroutineScope.launch {
                         fetchReports(localId = localParam)
                     }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                }
             ) {
                 Text("Filtruj")
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
@@ -209,19 +211,14 @@ fun MaintainerFinishedReportsScreen(
                 Text("Brak zgłoszeń do wyświetlenia", color = Color.Gray, fontSize = 16.sp)
             }
         } else {
-            LazyColumn(
+            Card(
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                shape = RoundedCornerShape(6.dp),
+                border = BorderStroke(1.dp, Color.Black),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF90D18F))
             ) {
-                itemsIndexed(filteredReports) { index, report ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onTicketClick(report.first) },
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, Color.Black),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF90D18F))
-                    ) {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    itemsIndexed(filteredReports) { index, report ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -238,46 +235,50 @@ fun MaintainerFinishedReportsScreen(
                                 modifier = Modifier.weight(1f).padding(end = 16.dp)
                             )
 
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Button(
-                                    onClick = {
-                                        val token = AuthSessionStore.getToken(context)
-                                        if (token.isNullOrBlank()) {
-                                            Toast.makeText(context, "Brak sesji użytkownika", Toast.LENGTH_SHORT).show()
-                                            return@Button
-                                        }
+                            Button(
+                                onClick = {
+                                    val token = AuthSessionStore.getToken(context)
+                                    if (token.isNullOrBlank()) {
+                                        Toast.makeText(context, "Brak sesji użytkownika", Toast.LENGTH_SHORT).show()
+                                        return@Button
+                                    }
 
-                                        IssueApiClient.enqueueRepairProtocolDownload(context, token, report.first)
-                                            .onSuccess {
-                                                Toast.makeText(context, "Rozpoczęto pobieranie", Toast.LENGTH_SHORT).show()
-                                            }
-                                            .onFailure {
-                                                Toast.makeText(context, "Nie udało się rozpocząć pobierania", Toast.LENGTH_SHORT).show()
-                                            }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
-                                ) {
-                                    Text("Generuj", color = Color.Black, fontSize = 12.sp)
-                                }
+                                    IssueApiClient.enqueueRepairProtocolDownload(context, token, report.first)
+                                        .onSuccess {
+                                            Toast.makeText(context, "Rozpoczęto pobieranie", Toast.LENGTH_SHORT).show()
+                                        }
+                                        .onFailure {
+                                            Toast.makeText(context, "Nie udało się rozpocząć pobierania", Toast.LENGTH_SHORT).show()
+                                        }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                            ) {
+                                Text("Generuj", color = Color.Black, fontSize = 12.sp)
                             }
+                        }
+
+                        if (index < filteredReports.size - 1) {
+                            HorizontalDivider(
+                                Modifier,
+                                DividerDefaults.Thickness,
+                                color = Color.Black.copy(alpha = 0.2f)
+                            )
                         }
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Przycisk Cofnij
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            Button(
-                onClick = onNavigateBack,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                shape = RoundedCornerShape(50),
-                contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
-            ) {
-                Text(text = "Cofnij", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
-            }
+        Button(
+            onClick = onNavigateBack,
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+            shape = RoundedCornerShape(50),
+            contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp),
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Text(text = "Cofnij", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))

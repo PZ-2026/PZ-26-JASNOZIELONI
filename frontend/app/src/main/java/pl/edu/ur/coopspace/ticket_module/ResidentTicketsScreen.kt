@@ -1,5 +1,6 @@
 package pl.edu.ur.coopspace.ticket_module
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -188,7 +189,28 @@ fun ResidentTicketsScreen(
                 ) {
                     val itemColor = if (ticketType == "FINISHED") androidx.compose.ui.graphics.Color(0xFF90D590) else androidx.compose.ui.graphics.Color(0xFFE4B560)
                     items(tickets) { ticket ->
-                        TicketListItem(ticket = ticket, backgroundColor = itemColor, onClick = { onTicketClick(ticket.id) })
+                        val showGenerate = ticketType == "FINISHED"
+                        TicketListItem(
+                            ticket = ticket,
+                            backgroundColor = itemColor,
+                            showGenerateButton = showGenerate,
+                            onGenerate = {
+                                val token = AuthSessionStore.getToken(context)
+                                if (token.isNullOrBlank()) {
+                                    Toast.makeText(context, "Brak sesji użytkownika", Toast.LENGTH_SHORT).show()
+                                    return@TicketListItem
+                                }
+
+                                IssueApiClient.enqueueRepairProtocolDownload(context, token, ticket.id)
+                                    .onSuccess {
+                                        Toast.makeText(context, "Rozpoczęto pobieranie", Toast.LENGTH_SHORT).show()
+                                    }
+                                    .onFailure {
+                                        Toast.makeText(context, "Nie udało się rozpocząć pobierania", Toast.LENGTH_SHORT).show()
+                                    }
+                            },
+                            onClick = { onTicketClick(ticket.id) }
+                        )
                     }
                 }
             }
@@ -202,7 +224,13 @@ fun ResidentTicketsScreen(
 
 // 2. Komponent pojedynczego wiersza listy
 @Composable
-fun TicketListItem(ticket: Ticket, backgroundColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.background, onClick: () -> Unit) {
+fun TicketListItem(
+    ticket: Ticket,
+    backgroundColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.background,
+    showGenerateButton: Boolean = false,
+    onGenerate: () -> Unit = {},
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -226,6 +254,17 @@ fun TicketListItem(ticket: Ticket, backgroundColor: androidx.compose.ui.graphics
             )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
+                if (showGenerateButton) {
+                    Button(
+                        onClick = onGenerate,
+                        colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.White)
+                    ) {
+                        Text("Generuj", color = androidx.compose.ui.graphics.Color.Black, fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+
                 Text(
                     text = "Szczegóły",
                     fontSize = 12.sp,
