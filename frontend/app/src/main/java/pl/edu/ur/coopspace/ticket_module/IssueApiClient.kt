@@ -1,7 +1,9 @@
 package pl.edu.ur.coopspace.ticket_module
 
+import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -199,6 +201,23 @@ object IssueApiClient {
             request("DELETE", "/api/issues/$issueId/images/$imageId", token)
             Unit
         }
+    }
+
+    fun enqueueRepairProtocolDownload(context: Context, token: String, issueId: Int): Result<Unit> = runCatching {
+        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val url = "$baseUrl/api/issues/$issueId/repair-protocol"
+        val fileName = "Protokol_Naprawy_$issueId.pdf"
+        val request = DownloadManager.Request(Uri.parse(url))
+            .addRequestHeader("Authorization", "Bearer $token")
+            .setTitle(fileName)
+            .setDescription("Pobieranie protokolu naprawy")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+            .setAllowedOverRoaming(false)
+
+        val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        manager.enqueue(request)
+        Unit
     }
 
     suspend fun getMaintainers(token: String): Result<List<MaintainerDto>> = withContext(Dispatchers.IO) {

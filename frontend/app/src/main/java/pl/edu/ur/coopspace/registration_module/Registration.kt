@@ -82,7 +82,7 @@ fun LoginScreen(
     // Domyślnie ustawiamy maila admina dla łatwego testowania
     var login by remember { mutableStateOf("admin@test.com") }
     var password by remember { mutableStateOf("admin123") }
-    var rememberMe by remember { mutableStateOf(true) }
+    val rememberMe = true
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -120,7 +120,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
         Text(
-            text = "Podaj adres e-mail użyty podczas rejestracji",
+            text = "Podaj adres e-mail przypisany do konta",
             fontSize = 10.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
@@ -164,27 +164,6 @@ fun LoginScreen(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = rememberMe,
-                    onCheckedChange = { rememberMe = it }
-                )
-                Text(text = "Zapamiętaj mnie", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            }
-            Text(
-                text = "Przypomnij hasło",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable { /* TODO */ }
-            )
-        }
 
         Spacer(modifier = Modifier.height(32.dp))
 

@@ -26,7 +26,7 @@ fun AdminRaportsScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
     onNavigateToServiceReportsRaport: () -> Unit = {},
-    onNavigateToFinishedReports: () -> Unit = {},
+    onNavigateToRepairProtocols: () -> Unit = {},
     onNavigateToStatisticRaport: () -> Unit = {}
 ) {
     Column(
@@ -128,7 +128,7 @@ fun AdminRaportsScreen(
                     modifier = Modifier.size(110.dp).offset(x = 0.dp)
                 )
             },
-            onClick = onNavigateToFinishedReports
+            onClick = onNavigateToRepairProtocols
         )
 
         Spacer(modifier = Modifier.weight(1f))
