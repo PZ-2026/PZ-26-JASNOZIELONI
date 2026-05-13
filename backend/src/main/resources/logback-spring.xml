@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Pobranie aktualnego czasu przy starcie aplikacji -->
+    <timestamp key="timestamp" datePattern="yyyy-MM-dd_HH-mm-ss"/>
+
+    <!-- Konfiguracja wyświetlania w konsoli -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Konfiguracja zapisu do pliku -->
+    <appender name="File" class="ch.qos.logback.core.FileAppender">
+        <!-- Ścieżka wskazana przez użytkownika (relatywna do katalogu uruchomieniowego backendu) -->
+        <file>src/main/java/pl/edu/ur/coopspace_backend/logs/log-${timestamp}.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Loggery dla specyficznych klas, które mają zapisywać do pliku -->
+    <logger name="pl.edu.ur.coopspace_backend.controller.UserController" level="INFO" additivity="true">
+        <appender-ref ref="File" />
+    </logger>
+
+    <logger name="pl.edu.ur.coopspace_backend.service.AuthService" level="INFO" additivity="true">
+        <appender-ref ref="File" />
+    </logger>
+
+    <!-- Root logger tylko dla konsoli -->
+    <root level="INFO">
+        <appender-ref ref="Console" />
+    </root>
+</configuration>

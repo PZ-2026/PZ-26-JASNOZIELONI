@@ -1,5 +1,7 @@
 package pl.edu.ur.coopspace_backend.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -33,6 +35,8 @@ import java.util.List;
  * mieszkancow i konserwatorow oraz zmieniac stan aktywnosci konta.</p>
  */
 public class UserController {
+
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     private final UserRepository userRepository;
     private final LocalRepository localRepository;
@@ -94,9 +98,11 @@ public class UserController {
     @PostMapping
     public ResponseEntity<AdminUserResponse> createUser(Authentication authentication, @RequestBody AdminCreateUserRequest request) {
         User currentUser = requireAdmin(authentication);
+        log.info("Admin {} attempts to create {} user with email {}", authentication.getName(), request.getRole(), request.getEmail());
 
         validateCreateRequest(request);
         if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("Admin {} failed to create user – email already exists: {}", authentication.getName(), request.getEmail());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email jest juz zarejestrowany");
         }
 
@@ -116,6 +122,7 @@ public class UserController {
                 .build();
 
         User savedUser = userRepository.save(user);
+        log.info("Admin {} created new {} user with id {}", authentication.getName(), request.getRole(), savedUser.getId());
         return ResponseEntity.ok(toAdminUserResponse(savedUser));
     }
 
