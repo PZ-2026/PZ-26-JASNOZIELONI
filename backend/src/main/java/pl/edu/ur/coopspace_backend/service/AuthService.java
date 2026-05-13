@@ -9,6 +9,8 @@ import pl.edu.ur.coopspace_backend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements authentication and registration workflows.
@@ -16,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -34,20 +38,27 @@ public class AuthService {
      * @return authentication response with JWT and user details
      */
     public AuthResponse login(LoginRequest request) {
+        log.info("Login attempt for email: {}", request.getEmail());
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
+                .orElseThrow(() -> {
+                    log.warn("Login failed – user not found: {}", request.getEmail());
+                    return new RuntimeException("Użytkownik nie znaleziony");
+                });
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            log.warn("Login failed – invalid password for email: {}", request.getEmail());
             throw new RuntimeException("Nieprawidłowe hasło");
         }
 
         if (!user.getIsActive()) {
+            log.warn("Login failed – inactive account for email: {}", request.getEmail());
             throw new RuntimeException("Użytkownik jest nieaktywny");
         }
 
         // 3. Generujemy token podczas logowania
         String token = jwtService.generateToken(user.getEmail());
 
+        log.info("Login successful for user id {} (email: {})", user.getId(), user.getEmail());
         return mapToAuthResponse(user, token);
     }
 
@@ -59,7 +70,9 @@ public class AuthService {
      * @return authentication response with JWT and new user details
      */
     public AuthResponse register(RegisterRequest request) {
+        log.info("Registration attempt for email: {}", request.getEmail());
         if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("Registration failed – email already exists: {}", request.getEmail());
             throw new RuntimeException("Email jest już zarejestrowany");
         }
 
@@ -78,6 +91,7 @@ public class AuthService {
         // 4. Generujemy token również przy rejestracji (dzięki temu user jest od razu zalogowany)
         String token = jwtService.generateToken(user.getEmail());
 
+        log.info("Registration successful for user id {} (email: {})", user.getId(), user.getEmail());
         return mapToAuthResponse(user, token);
     }
 
