@@ -1,6 +1,5 @@
 package pl.edu.ur.coopspace.administration_module
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,6 +13,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
@@ -22,18 +22,59 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import android.widget.Toast
+import pl.edu.ur.coopspace.auth.AuthSessionStore
+import pl.edu.ur.coopspace.ticket_module.IssueApiClient
+import pl.edu.ur.coopspace.ticket_module.IssueCategoryDto
+import pl.edu.ur.coopspace.ticket_module.BuildingDto
+import pl.edu.ur.coopspace.ticket_module.MaintainerDto
 
 @Composable
 fun AdminRaportOfServiceReportsScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit
 ) {
+    val context = LocalContext.current
     var periodValue by remember { mutableFloatStateOf(6f) }
-    
-    val categoryOptions = listOf("Wszystkie", "Hydraulika", "Elektryka", "Budowlane")
-    val statusOptions = listOf("Nowe", "W trakcie", "Zamknięte")
-    val workersOptions = listOf("Wszyscy", "(Tu z jakiejś listy wybór)")
-    val buildingsOptions = listOf("Wszystkie", "(Tu z jakiejś listy wybór)")
+
+    var categories by remember { mutableStateOf<List<IssueCategoryDto>>(emptyList()) }
+    var maintainers by remember { mutableStateOf<List<MaintainerDto>>(emptyList()) }
+    var buildings by remember { mutableStateOf<List<BuildingDto>>(emptyList()) }
+
+    var selectedCategory by remember { mutableStateOf("Wszystkie") }
+    var selectedStatus by remember { mutableStateOf("Wszystkie") }
+    var selectedMaintainer by remember { mutableStateOf("Wszyscy") }
+    var selectedBuilding by remember { mutableStateOf("Wszystkie") }
+
+    val categoryOptions = listOf("Wszystkie") + categories.map { it.name }
+    val statusOptions = listOf("Wszystkie", "Nowe", "W trakcie", "Zamknięte")
+    val workersOptions = listOf("Wszyscy") + maintainers.map { "${it.firstName} ${it.lastName}".trim() }
+    val buildingsOptions = listOf("Wszystkie") + buildings.map { formatBuildingLabel(it) }
+
+    LaunchedEffect(Unit) {
+        val token = AuthSessionStore.getToken(context)
+        if (token.isNullOrBlank()) {
+            return@LaunchedEffect
+        }
+
+        IssueApiClient.getIssueCategories(token)
+            .onSuccess { list -> categories = list }
+            .onFailure {
+                Toast.makeText(context, "Nie udalo sie pobrac kategorii", Toast.LENGTH_SHORT).show()
+            }
+
+        IssueApiClient.getMaintainers(token)
+            .onSuccess { list -> maintainers = list }
+            .onFailure {
+                Toast.makeText(context, "Nie udalo sie pobrac konserwatorow", Toast.LENGTH_SHORT).show()
+            }
+
+        IssueApiClient.getBuildings(token)
+            .onSuccess { list -> buildings = list }
+            .onFailure {
+                Toast.makeText(context, "Nie udalo sie pobrac budynkow", Toast.LENGTH_SHORT).show()
+            }
+    }
 
     Column(
         modifier = Modifier
@@ -94,14 +135,18 @@ fun AdminRaportOfServiceReportsScreen(
             SelectionBox(
                 label = "Kategoria Usterki",
                 options = categoryOptions,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                selectedOption = selectedCategory,
+                onSelect = { selectedCategory = it }
             )
             Spacer(modifier = Modifier.width(24.dp))
             SelectionBox(
                 label = "Status Zgłoszenia",
                 options = statusOptions,
                 modifier = Modifier.weight(1f),
-                borderColor = Color(0xFF2196F3) // Błękitny jak na makiecie dla wyróżnionego
+                borderColor = Color(0xFF2196F3),
+                selectedOption = selectedStatus,
+                onSelect = { selectedStatus = it }
             )
         }
 
@@ -111,13 +156,17 @@ fun AdminRaportOfServiceReportsScreen(
             SelectionBox(
                 label = "Konserwator",
                 options = workersOptions,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                selectedOption = selectedMaintainer,
+                onSelect = { selectedMaintainer = it }
             )
             Spacer(modifier = Modifier.width(24.dp))
             SelectionBox(
                 label = "Budynek",
                 options = buildingsOptions,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                selectedOption = selectedBuilding,
+                onSelect = { selectedBuilding = it }
             )
         }
 
@@ -273,7 +322,51 @@ fun AdminRaportOfServiceReportsScreen(
             }
 
             Button(
-                onClick = { /* TODO: Generuj */ },
+                onClick = {
+                    if (selectedCategory.isBlank()
+                        || selectedStatus.isBlank()
+                        || selectedMaintainer.isBlank()
+                        || selectedBuilding.isBlank()
+                    ) {
+                        Toast.makeText(context, "Wybierz wszystkie filtry przed generowaniem", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    val token = AuthSessionStore.getToken(context)
+                    if (token.isNullOrBlank()) {
+                        Toast.makeText(context, "Brak sesji uzytkownika", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    val selectedCategoryId = categories.firstOrNull { it.name == selectedCategory }?.id
+                    val selectedMaintainerId = maintainers.firstOrNull {
+                        "${it.firstName} ${it.lastName}".trim() == selectedMaintainer
+                    }?.id
+                    val selectedBuildingId = buildings.firstOrNull { formatBuildingLabel(it) == selectedBuilding }?.id
+
+                    val status = when (selectedStatus) {
+                        "Nowe" -> "OPEN"
+                        "W trakcie" -> "IN_PROGRESS"
+                        "Zamknięte" -> "CLOSED"
+                        else -> null
+                    }
+
+                    IssueApiClient.enqueueMaintenanceReportDownload(
+                        context = context,
+                        token = token,
+                        months = periodValue.toInt(),
+                        status = status,
+                        categoryId = selectedCategoryId,
+                        maintainerId = selectedMaintainerId,
+                        buildingId = selectedBuildingId
+                    )
+                        .onSuccess {
+                            Toast.makeText(context, "Rozpoczeto pobieranie", Toast.LENGTH_SHORT).show()
+                        }
+                        .onFailure {
+                            Toast.makeText(context, "Nie udalo sie rozpoczaec pobierania", Toast.LENGTH_SHORT).show()
+                        }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00801F)),
                 shape = RoundedCornerShape(50),
                 contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
@@ -291,7 +384,9 @@ fun SelectionBox(
     label: String,
     options: List<String>,
     modifier: Modifier = Modifier,
-    borderColor: Color = Color(0xFF6750A4)
+    borderColor: Color = Color(0xFF6750A4),
+    selectedOption: String,
+    onSelect: (String) -> Unit
 ) {
     Box(modifier = modifier) {
         // Etykieta na górze
@@ -330,7 +425,7 @@ fun SelectionBox(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "(Wybierz)|",
+                        text = if (selectedOption.isBlank()) "(Wybierz)|" else selectedOption,
                         fontSize = 14.sp,
                         color = Color.Black
                     )
@@ -338,7 +433,7 @@ fun SelectionBox(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Clear",
                         tint = Color.Black,
-                        modifier = Modifier.size(20.dp).clickable { /* Clear selection */ }
+                        modifier = Modifier.size(20.dp).clickable { onSelect("") }
                     )
                 }
 
@@ -356,11 +451,23 @@ fun SelectionBox(
                             text = option,
                             fontSize = 14.sp,
                             color = Color.Black,
-                            modifier = Modifier.clickable { /* Select option */ }
+                            modifier = Modifier.clickable { onSelect(option) }
                         )
                     }
                 }
             }
         }
+    }
+}
+
+private fun formatBuildingLabel(building: BuildingDto): String {
+    val name = building.name?.trim().orEmpty()
+    val address = building.address?.trim().orEmpty()
+
+    return when {
+        name.isNotBlank() && address.isNotBlank() -> "$name - $address"
+        address.isNotBlank() -> address
+        name.isNotBlank() -> name
+        else -> "Budynek #${building.id}"
     }
 }
