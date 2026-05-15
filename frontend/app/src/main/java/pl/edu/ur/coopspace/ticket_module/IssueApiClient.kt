@@ -38,6 +38,12 @@ data class IssueCategoryDto(
     val name: String
 )
 
+data class BuildingDto(
+    val id: Int,
+    val name: String?,
+    val address: String?
+)
+
 data class MaintainerDto(
     val id: Int,
     val firstName: String,
@@ -220,6 +226,47 @@ object IssueApiClient {
         Unit
     }
 
+    fun enqueueMaintenanceReportDownload(
+        context: Context,
+        token: String,
+        months: Int,
+        status: String?,
+        categoryId: Int?,
+        maintainerId: Int?,
+        buildingId: Int?
+    ): Result<Unit> = runCatching {
+        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val uriBuilder = Uri.parse("$baseUrl/api/reports/maintenance").buildUpon()
+            .appendQueryParameter("months", months.toString())
+
+        if (!status.isNullOrBlank()) {
+            uriBuilder.appendQueryParameter("status", status)
+        }
+        if (categoryId != null) {
+            uriBuilder.appendQueryParameter("categoryId", categoryId.toString())
+        }
+        if (maintainerId != null) {
+            uriBuilder.appendQueryParameter("maintainerId", maintainerId.toString())
+        }
+        if (buildingId != null) {
+            uriBuilder.appendQueryParameter("buildingId", buildingId.toString())
+        }
+
+        val url = uriBuilder.build().toString()
+        val fileName = "Raport_Zgloszen_Konserwatorskich.pdf"
+        val request = DownloadManager.Request(Uri.parse(url))
+            .addRequestHeader("Authorization", "Bearer $token")
+            .setTitle(fileName)
+            .setDescription("Pobieranie raportu zgloszen")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+            .setAllowedOverRoaming(false)
+
+        val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        manager.enqueue(request)
+        Unit
+    }
+
     suspend fun getMaintainers(token: String): Result<List<MaintainerDto>> = withContext(Dispatchers.IO) {
         runCatching {
             val response = request("GET", "/api/users/maintainers", token)
@@ -234,6 +281,26 @@ object IssueApiClient {
                             firstName = item.optString("firstName", ""),
                             lastName = item.optString("lastName", ""),
                             email = item.optString("email", "")
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    suspend fun getBuildings(token: String): Result<List<BuildingDto>> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response = request("GET", "/api/buildings", token)
+            val array = JSONArray(response)
+
+            buildList {
+                for (index in 0 until array.length()) {
+                    val item = array.getJSONObject(index)
+                    add(
+                        BuildingDto(
+                            id = item.getInt("id"),
+                            name = item.optString("name", ""),
+                            address = item.optString("address", "")
                         )
                     )
                 }
