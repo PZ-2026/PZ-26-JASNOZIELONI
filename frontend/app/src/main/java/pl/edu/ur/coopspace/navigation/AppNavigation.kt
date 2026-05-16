@@ -6,6 +6,12 @@ import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import android.content.Intent
+import androidx.core.content.FileProvider
+import android.widget.Toast
+import pl.edu.ur.coopspace.user_module.UserFinanceApiClient
 import pl.edu.ur.coopspace.administration_module.AdminHomeScreen
 import pl.edu.ur.coopspace.administration_module.AdminAnnouncementScreen
 import pl.edu.ur.coopspace.administration_module.AdminAddAnnouncementScreen
@@ -49,6 +55,7 @@ import pl.edu.ur.coopspace.maintainer_module.MaintainerReportsInProgressScreen
 fun CoopSpaceApp() {
     val context = LocalContext.current
     val navController = rememberNavController()
+    val coroutineScope = rememberCoroutineScope()
     val startDestination = remember {
         val token = AuthSessionStore.getToken(context)
         val role = AuthSessionStore.getRole(context)
@@ -689,8 +696,28 @@ fun CoopSpaceApp() {
                     navController.navigate("user_payment_history")
                 },
                 onGenerateReport = {
-                    // Navigate with dummy id 0 if report doesn't have an ID
-                    navController.navigate("user_payment_details/0")
+                    coroutineScope.launch {
+                        UserFinanceApiClient.downloadReport(context)
+                            .onSuccess { file ->
+                                try {
+                                    val uri = FileProvider.getUriForFile(
+                                        context,
+                                        "${context.packageName}.fileprovider",
+                                        file
+                                    )
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        setDataAndType(uri, "application/pdf")
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }
+                                    context.startActivity(Intent.createChooser(intent, "Otwórz raport"))
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Nie można otworzyć pliku: ${e.message}", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                            .onFailure { error ->
+                                Toast.makeText(context, "Błąd: ${error.message}", Toast.LENGTH_LONG).show()
+                            }
+                    }
                 }
             )
         }
