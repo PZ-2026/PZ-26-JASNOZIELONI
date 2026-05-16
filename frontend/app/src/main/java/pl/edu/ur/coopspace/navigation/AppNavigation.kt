@@ -695,9 +695,9 @@ fun CoopSpaceApp() {
                 onNavigateToHistory = {
                     navController.navigate("user_payment_history")
                 },
-                onGenerateReport = {
+                onGenerateReport = { startDate, endDate ->
                     coroutineScope.launch {
-                        UserFinanceApiClient.downloadReport(context)
+                        UserFinanceApiClient.downloadReport(context, startDate, endDate)
                             .onSuccess { file ->
                                 try {
                                     val uri = FileProvider.getUriForFile(

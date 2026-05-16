@@ -312,9 +312,18 @@ object UserFinanceApiClient {
         }
     }
 
-    suspend fun downloadReport(context: Context): Result<File> = withContext(Dispatchers.IO) {
+    suspend fun downloadReport(context: Context, startDate: String? = null, endDate: String? = null): Result<File> = withContext(Dispatchers.IO) {
         runCatching {
-            val conn = setupConnection("${getBaseUrl()}/api/user/finances/report", context)
+            var urlString = "${getBaseUrl()}/api/user/finances/report"
+            val params = mutableListOf<String>()
+            if (!startDate.isNullOrEmpty()) params.add("startDate=$startDate")
+            if (!endDate.isNullOrEmpty()) params.add("endDate=$endDate")
+            
+            if (params.isNotEmpty()) {
+                urlString += "?" + params.joinToString("&")
+            }
+
+            val conn = setupConnection(urlString, context)
             conn.setRequestProperty("Accept", "application/pdf")
             
             if (conn.responseCode !in 200..299) {

@@ -146,31 +146,67 @@ public class UserFinanceService {
                 .createdAt(LocalDateTime.now())
                 .build();
                 
-        return paymentRepository.save(newPayment);
+        Payment savedPayment = paymentRepository.save(newPayment);
+
+        // Aktualizacja statusu opłaty
+        Charge charge = chargeRepository.findById(targetChargeId).orElseThrow();
+        BigDecimal totalAmount = charge.getTotalAmount() != null ? charge.getTotalAmount() : BigDecimal.ZERO;
+        BigDecimal paidAmount = paymentRepository.findByChargeId(targetChargeId).stream()
+                .map(Payment::getAmount)
+                .filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (paidAmount.compareTo(totalAmount) >= 0) {
+            charge.setStatus(ChargeStatus.PAID);
+        } else if (paidAmount.compareTo(BigDecimal.ZERO) > 0) {
+            charge.setStatus(ChargeStatus.PARTIALLY_PAID);
+        } else {
+            charge.setStatus(ChargeStatus.UNPAID);
+        }
+        charge.setUpdatedAt(LocalDateTime.now());
+        chargeRepository.save(charge);
+
+        return savedPayment;
     }
 
     @Transactional(readOnly = true)
-    public byte[] generateFinancialReport(User user) {
+    public byte[] generateFinancialReport(User user, LocalDate startDate, LocalDate endDate) {
         Local local = localRepository.findById(user.getLocalId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono lokalu"));
         Building building = buildingRepository.findById(local.getBuildingId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono budynku"));
 
-        List<Charge> charges = chargeRepository.findByLocalId(user.getLocalId());
-        charges.sort(Comparator.comparing(Charge::getPeriodStart));
+        List<Charge> chargesList = chargeRepository.findByLocalId(user.getLocalId());
+        
+        if (startDate != null) {
+            chargesList = chargesList.stream()
+                    .filter(c -> !c.getPeriodStart().isBefore(startDate))
+                    .toList();
+        }
+        if (endDate != null) {
+            chargesList = chargesList.stream()
+                    .filter(c -> !c.getPeriodEnd().isAfter(endDate))
+                    .toList();
+        }
+        
+        List<Charge> finalCharges = new ArrayList<>(chargesList);
+        finalCharges.sort(Comparator.comparing(Charge::getPeriodStart));
 
         FinancialReportData data = new FinancialReportData();
         data.dataStworzenia = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         data.numerRaportu = "RF/" + LocalDate.now().getYear() + "/" + LocalDate.now().getMonthValue() + "/" + user.getId();
-        data.dataOd = charges.isEmpty() ? "-" : charges.get(0).getPeriodStart().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        data.dataDo = charges.isEmpty() ? "-" : charges.get(charges.size() - 1).getPeriodEnd().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        
+        data.dataOd = startDate != null ? startDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) : 
+                     (finalCharges.isEmpty() ? "-" : finalCharges.get(0).getPeriodStart().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+        data.dataDo = endDate != null ? endDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) : 
+                     (finalCharges.isEmpty() ? "-" : finalCharges.get(finalCharges.size() - 1).getPeriodEnd().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
         data.imieNazwisko = user.getFirstName() + " " + user.getLastName();
         data.adresMieszkania = building.getAddress() + ", m. " + local.getNumber();
         data.email = user.getEmail();
 
         data.pozycje = new ArrayList<>();
         int index = 1;
-        for (Charge charge : charges) {
+        for (Charge charge : finalCharges) {
             List<ChargeItem> items = chargeItemRepository.findByChargeId(charge.getId());
             BigDecimal water = BigDecimal.ZERO;
             BigDecimal electricity = BigDecimal.ZERO;

@@ -100,9 +100,12 @@ public class UserFinanceController {
      * @return PDF report file
      */
     @GetMapping("/report")
-    public ResponseEntity<byte[]> downloadReport(Authentication authentication) {
+    public ResponseEntity<byte[]> downloadReport(
+            Authentication authentication,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate) {
         User currentUser = requireResident(authentication);
-        byte[] pdfContent = userFinanceService.generateFinancialReport(currentUser);
+        byte[] pdfContent = userFinanceService.generateFinancialReport(currentUser, startDate, endDate);
 
         String filename = "Raport_Finansowy_" + currentUser.getLastName() + "_" + LocalDate.now() + ".pdf";
 
