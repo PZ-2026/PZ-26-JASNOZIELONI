@@ -1,7 +1,9 @@
 package pl.edu.ur.coopspace_backend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,7 @@ import pl.edu.ur.coopspace_backend.entity.UserRole;
 import pl.edu.ur.coopspace_backend.repository.UserRepository;
 import pl.edu.ur.coopspace_backend.service.UserFinanceService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -88,6 +91,28 @@ public class UserFinanceController {
     public ResponseEntity<Payment> makePayment(Authentication authentication, @RequestBody Payment payment) {
         User currentUser = requireResident(authentication);
         return ResponseEntity.ok(userFinanceService.makePayment(currentUser.getLocalId(), payment));
+    }
+
+    /**
+     * Generates and returns a financial report for the authenticated resident.
+     *
+     * @param authentication current authentication
+     * @return PDF report file
+     */
+    @GetMapping("/report")
+    public ResponseEntity<byte[]> downloadReport(
+            Authentication authentication,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate) {
+        User currentUser = requireResident(authentication);
+        byte[] pdfContent = userFinanceService.generateFinancialReport(currentUser, startDate, endDate);
+
+        String filename = "Raport_Finansowy_" + currentUser.getLastName() + "_" + LocalDate.now() + ".pdf";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfContent);
     }
 
     /**

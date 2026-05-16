@@ -8,6 +8,7 @@ import org.json.JSONObject
 import pl.edu.ur.coopspace.BuildConfig
 import pl.edu.ur.coopspace.auth.AuthSessionStore
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
@@ -308,6 +309,40 @@ object UserFinanceApiClient {
                 val error = readResponseBody(connection)
                 throw IllegalStateException("Nie udało się dokonać wpłaty: $error")
             }
+        }
+    }
+
+    suspend fun downloadReport(context: Context, startDate: String? = null, endDate: String? = null): Result<File> = withContext(Dispatchers.IO) {
+        runCatching {
+            var urlString = "${getBaseUrl()}/api/user/finances/report"
+            val params = mutableListOf<String>()
+            if (!startDate.isNullOrEmpty()) params.add("startDate=$startDate")
+            if (!endDate.isNullOrEmpty()) params.add("endDate=$endDate")
+            
+            if (params.isNotEmpty()) {
+                urlString += "?" + params.joinToString("&")
+            }
+
+            val conn = setupConnection(urlString, context)
+            conn.setRequestProperty("Accept", "application/pdf")
+            
+            if (conn.responseCode !in 200..299) {
+                val error = readResponseBody(conn)
+                throw IllegalStateException("Błąd pobierania raportu: $error")
+            }
+
+            val downloadsDir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
+            if (downloadsDir == null || (!downloadsDir.exists() && !downloadsDir.mkdirs())) {
+                throw IllegalStateException("Nie można uzyskać dostępu do folderu pobierania")
+            }
+
+            val file = File(downloadsDir, "Raport_Finansowy_${System.currentTimeMillis()}.pdf")
+            conn.inputStream.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            file
         }
     }
 }

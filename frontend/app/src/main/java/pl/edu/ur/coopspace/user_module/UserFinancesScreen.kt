@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
@@ -29,7 +30,7 @@ fun UserFinancesScreen(
     onLogout: () -> Unit,
     onBack: () -> Unit,
     onNavigateToHistory: () -> Unit,
-    onGenerateReport: () -> Unit
+    onGenerateReport: (startDate: String?, endDate: String?) -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -37,6 +38,7 @@ fun UserFinancesScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showPaymentDialog by remember { mutableStateOf(false) }
+    var showDateRangeDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         isLoading = true
@@ -53,7 +55,7 @@ fun UserFinancesScreen(
 
     val menuItems = listOf(
         UserMenuItem("Przeglądaj historię opłat", Icons.Default.Checklist) { onNavigateToHistory() },
-        UserMenuItem("Generuj Raport Finansowy", Icons.AutoMirrored.Filled.ReceiptLong) { onGenerateReport() },
+        UserMenuItem("Generuj Raport Finansowy", Icons.AutoMirrored.Filled.ReceiptLong) { showDateRangeDialog = true },
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -176,6 +178,16 @@ fun UserFinancesScreen(
                 )
             }
 
+            if (showDateRangeDialog) {
+                DateRangePickerDialog(
+                    onDismiss = { showDateRangeDialog = false },
+                    onConfirm = { start, end ->
+                        showDateRangeDialog = false
+                        onGenerateReport(start, end)
+                    }
+                )
+            }
+
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -236,5 +248,53 @@ fun FinanceStatusCard(
                 }
             }
         }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DateRangePickerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String?, String?) -> Unit
+) {
+    val state = rememberDateRangePickerState()
+    
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val start = state.selectedStartDateMillis?.let {
+                        SimpleDateFormat("yyyy-MM-dd", Locale.US).format(java.util.Date(it))
+                    }
+                    val end = state.selectedEndDateMillis?.let {
+                        SimpleDateFormat("yyyy-MM-dd", Locale.US).format(java.util.Date(it))
+                    }
+                    onConfirm(start, end)
+                }
+            ) {
+                Text("Generuj")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Anuluj")
+            }
+        }
+    ) {
+        DateRangePicker(
+            state = state,
+            title = { Text("Wybierz zakres dat", modifier = Modifier.padding(16.dp)) },
+            headline = {
+                val start = state.selectedStartDateMillis?.let {
+                    SimpleDateFormat("dd.MM.yyyy", Locale.US).format(java.util.Date(it))
+                } ?: "Od"
+                val end = state.selectedEndDateMillis?.let {
+                    SimpleDateFormat("dd.MM.yyyy", Locale.US).format(java.util.Date(it))
+                } ?: "Do"
+                Text("$start - $end", modifier = Modifier.padding(horizontal = 16.dp))
+            },
+            showModeToggle = false,
+            modifier = Modifier.weight(1f)
+        )
     }
 }

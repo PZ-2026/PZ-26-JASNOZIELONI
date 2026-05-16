@@ -12,13 +12,22 @@ import pl.edu.ur.coopspace_backend.repository.ChargeItemTypeRepository;
 import pl.edu.ur.coopspace_backend.repository.ChargeRepository;
 import pl.edu.ur.coopspace_backend.repository.PaymentRepository;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import pl.edu.ur.coopspace_backend.entity.*;
+import pl.edu.ur.coopspace_backend.repository.*;
+import org.example.FinancialReportGenerator;
+import org.example.FinancialReportData;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Comparator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +40,8 @@ public class UserFinanceService {
     private final PaymentRepository paymentRepository;
     private final ChargeItemRepository chargeItemRepository;
     private final ChargeItemTypeRepository chargeItemTypeRepository;
+    private final LocalRepository localRepository;
+    private final BuildingRepository buildingRepository;
 
     /**
      * Returns charges assigned to the given local.
@@ -127,6 +138,20 @@ public class UserFinanceService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu do tej opłaty");
             }
         }
+
+        // Walidacja nadpłaty
+        BigDecimal chargeTotal = chargeRepository.findById(targetChargeId).orElseThrow().getTotalAmount();
+        if (chargeTotal == null) chargeTotal = BigDecimal.ZERO;
+        
+        BigDecimal alreadyPaid = paymentRepository.findByChargeId(targetChargeId).stream()
+                .map(Payment::getAmount)
+                .filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal remaining = chargeTotal.subtract(alreadyPaid);
+        if (payment.getAmount().compareTo(remaining) > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie można zapłacić więcej niż pozostało do spłaty (" + remaining + " zł)");
+        }
         
         Payment newPayment = Payment.builder()
                 .chargeId(targetChargeId)
@@ -135,6 +160,120 @@ public class UserFinanceService {
                 .createdAt(LocalDateTime.now())
                 .build();
                 
-        return paymentRepository.save(newPayment);
+        Payment savedPayment = paymentRepository.save(newPayment);
+
+        // Aktualizacja statusu opłaty
+        Charge charge = chargeRepository.findById(targetChargeId).orElseThrow();
+        BigDecimal totalAmount = charge.getTotalAmount() != null ? charge.getTotalAmount() : BigDecimal.ZERO;
+        BigDecimal paidAmount = paymentRepository.findByChargeId(targetChargeId).stream()
+                .map(Payment::getAmount)
+                .filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (paidAmount.compareTo(totalAmount) >= 0) {
+            charge.setStatus(ChargeStatus.PAID);
+        } else if (paidAmount.compareTo(BigDecimal.ZERO) > 0) {
+            charge.setStatus(ChargeStatus.PARTIALLY_PAID);
+        } else {
+            charge.setStatus(ChargeStatus.UNPAID);
+        }
+        charge.setUpdatedAt(LocalDateTime.now());
+        chargeRepository.save(charge);
+
+        return savedPayment;
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] generateFinancialReport(User user, LocalDate startDate, LocalDate endDate) {
+        Local local = localRepository.findById(user.getLocalId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono lokalu"));
+        Building building = buildingRepository.findById(local.getBuildingId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nie znaleziono budynku"));
+
+        List<Charge> chargesList = chargeRepository.findByLocalId(user.getLocalId());
+        
+        if (startDate != null) {
+            chargesList = chargesList.stream()
+                    .filter(c -> !c.getPeriodStart().isBefore(startDate))
+                    .toList();
+        }
+        if (endDate != null) {
+            chargesList = chargesList.stream()
+                    .filter(c -> !c.getPeriodEnd().isAfter(endDate))
+                    .toList();
+        }
+        
+        List<Charge> finalCharges = new ArrayList<>(chargesList);
+        finalCharges.sort(Comparator.comparing(Charge::getPeriodStart));
+
+        FinancialReportData data = new FinancialReportData();
+        data.dataStworzenia = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        data.numerRaportu = "RF/" + LocalDate.now().getYear() + "/" + LocalDate.now().getMonthValue() + "/" + user.getId();
+        
+        data.dataOd = startDate != null ? startDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) : 
+                     (finalCharges.isEmpty() ? "-" : finalCharges.get(0).getPeriodStart().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+        data.dataDo = endDate != null ? endDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) : 
+                     (finalCharges.isEmpty() ? "-" : finalCharges.get(finalCharges.size() - 1).getPeriodEnd().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+        data.imieNazwisko = user.getFirstName() + " " + user.getLastName();
+        data.adresMieszkania = building.getAddress() + ", m. " + local.getNumber();
+        data.email = user.getEmail();
+
+        data.pozycje = new ArrayList<>();
+        int index = 1;
+        for (Charge charge : finalCharges) {
+            List<ChargeItem> items = chargeItemRepository.findByChargeId(charge.getId());
+            BigDecimal water = BigDecimal.ZERO;
+            BigDecimal electricity = BigDecimal.ZERO;
+            BigDecimal rent = BigDecimal.ZERO;
+            BigDecimal gas = BigDecimal.ZERO;
+
+            for (ChargeItem item : items) {
+                BigDecimal total = item.getTotal() != null ? item.getTotal() : BigDecimal.ZERO;
+                if (item.getTypeId() == 1) water = water.add(total);
+                else if (item.getTypeId() == 2) electricity = electricity.add(total);
+                else if (item.getTypeId() == 3) rent = rent.add(total);
+                else if (item.getTypeId() == 4) gas = gas.add(total);
+            }
+
+            BigDecimal paidAmount = paymentRepository.findByChargeId(charge.getId()).stream()
+                    .map(Payment::getAmount)
+                    .filter(java.util.Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            String statusStr = switch (charge.getStatus()) {
+                case PAID -> "OPŁACONE";
+                case UNPAID -> "NIEOPŁACONE";
+                case PARTIALLY_PAID -> "CZĘŚCIOWO OPŁACONE";
+            };
+
+            BigDecimal totalChargeAmount = charge.getTotalAmount() != null ? charge.getTotalAmount() : BigDecimal.ZERO;
+
+            data.pozycje.add(new FinancialReportData.FinanceRow(
+                    String.valueOf(index++),
+                    charge.getPeriodStart().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                    rent.toPlainString(),
+                    water.toPlainString(),
+                    electricity.toPlainString(),
+                    gas.toPlainString(),
+                    totalChargeAmount.toPlainString(),
+                    paidAmount.toPlainString(),
+                    statusStr
+            ));
+        }
+
+        String tempFilePath = "temp_report_" + user.getId() + "_" + System.currentTimeMillis() + ".pdf";
+        FinancialReportGenerator generator = new FinancialReportGenerator();
+        try {
+            generator.generateFinancialReportPdf(tempFilePath, data);
+            File pdfFile = new File(tempFilePath);
+            if (!pdfFile.exists()) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Plik PDF nie został wygenerowany");
+            }
+            byte[] content = Files.readAllBytes(pdfFile.toPath());
+            pdfFile.delete();
+            return content;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Błąd podczas generowania PDF: " + e.getMessage(), e);
+        }
     }
 }
