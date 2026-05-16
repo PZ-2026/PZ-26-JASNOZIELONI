@@ -20,12 +20,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import pl.edu.ur.coopspace.auth.AuthSessionStore
+import pl.edu.ur.coopspace.ticket_module.IssueApiClient
 
 @Composable
 fun AdminGenerateStatisticRaportScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit
 ) {
+    val context = LocalContext.current
     var periodValue by remember { mutableFloatStateOf(6f) }
     
     val checklistItems = listOf(
@@ -59,7 +64,7 @@ fun AdminGenerateStatisticRaportScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Zgłoszeń",
+                text = "Raport \nstatystyczne",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onBackground
@@ -277,7 +282,32 @@ fun AdminGenerateStatisticRaportScreen(
             }
 
             Button(
-                onClick = { /* TODO: Generuj */ },
+                onClick = {
+                    val token = AuthSessionStore.getToken(context)
+                    if (token.isNullOrBlank()) {
+                        Toast.makeText(context, "Brak sesji użytkownika", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    val includeRevenue = checkedStates["Suma wszystkich wpłat"] ?: false
+                    val includeIssuesCount = checkedStates["Ogólna liczba usterek"] ?: false
+                    val includeAvgResolutionTime = checkedStates["Średni czas rozwiązania usterek"] ?: false
+                    val includeResidentsCount = checkedStates["Ilość mieszkańców"] ?: false
+
+                    IssueApiClient.enqueueStatisticReportDownload(
+                        context = context,
+                        token = token,
+                        months = periodValue.toInt(),
+                        includeRevenue = includeRevenue,
+                        includeIssuesCount = includeIssuesCount,
+                        includeAvgResolutionTime = includeAvgResolutionTime,
+                        includeResidentsCount = includeResidentsCount
+                    ).onSuccess {
+                        Toast.makeText(context, "Rozpoczęto pobieranie", Toast.LENGTH_SHORT).show()
+                    }.onFailure {
+                        Toast.makeText(context, "Nie udało się rozpocząć pobierania", Toast.LENGTH_SHORT).show()
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00801F)),
                 shape = RoundedCornerShape(50),
                 contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)

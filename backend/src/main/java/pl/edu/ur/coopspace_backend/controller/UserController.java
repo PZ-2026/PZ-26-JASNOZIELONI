@@ -31,8 +31,10 @@ import java.util.List;
 /**
  * Endpointy administracyjne do zarzadzania uzytkownikami.
  *
- * <p>Kontroler pozwala administratorowi listowac uzytkownikow, tworzyc konta
- * mieszkancow i konserwatorow oraz zmieniac stan aktywnosci konta.</p>
+ * <p>
+ * Kontroler pozwala administratorowi listowac uzytkownikow, tworzyc konta
+ * mieszkancow i konserwatorow oraz zmieniac stan aktywnosci konta.
+ * </p>
  */
 public class UserController {
 
@@ -42,17 +44,18 @@ public class UserController {
     private final LocalRepository localRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserController(UserRepository userRepository, LocalRepository localRepository, PasswordEncoder passwordEncoder) {
+    public UserController(UserRepository userRepository, LocalRepository localRepository,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.localRepository = localRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     /**
-        * Zwraca wszystkie konta mieszkancow widoczne dla administratora.
+     * Zwraca wszystkie konta mieszkancow widoczne dla administratora.
      *
-        * @param authentication dane aktualnie zalogowanego uzytkownika
-        * @return posortowana lista mieszkancow
+     * @param authentication dane aktualnie zalogowanego uzytkownika
+     * @return posortowana lista mieszkancow
      */
     @GetMapping("/residents")
     public ResponseEntity<List<AdminUserResponse>> getResidents(Authentication authentication) {
@@ -69,10 +72,10 @@ public class UserController {
     }
 
     /**
-        * Zwraca wszystkie konta konserwatorow widoczne dla administratora.
+     * Zwraca wszystkie konta konserwatorow widoczne dla administratora.
      *
-        * @param authentication dane aktualnie zalogowanego uzytkownika
-        * @return posortowana lista konserwatorow
+     * @param authentication dane aktualnie zalogowanego uzytkownika
+     * @return posortowana lista konserwatorow
      */
     @GetMapping("/maintainers")
     public ResponseEntity<List<AdminUserResponse>> getMaintainers(Authentication authentication) {
@@ -89,20 +92,23 @@ public class UserController {
     }
 
     /**
-        * Tworzy konto mieszkanca lub konserwatora.
+     * Tworzy konto mieszkanca lub konserwatora.
      *
-        * @param authentication dane aktualnie zalogowanego uzytkownika
-        * @param request dane nowego uzytkownika
-        * @return dane utworzonego uzytkownika
+     * @param authentication dane aktualnie zalogowanego uzytkownika
+     * @param request        dane nowego uzytkownika
+     * @return dane utworzonego uzytkownika
      */
     @PostMapping
-    public ResponseEntity<AdminUserResponse> createUser(Authentication authentication, @RequestBody AdminCreateUserRequest request) {
+    public ResponseEntity<AdminUserResponse> createUser(Authentication authentication,
+            @RequestBody AdminCreateUserRequest request) {
         User currentUser = requireAdmin(authentication);
-        log.info("Admin {} attempts to create {} user with email {}", authentication.getName(), request.getRole(), request.getEmail());
+        log.info("Admin {} attempts to create {} user with email {}", authentication.getName(), request.getRole(),
+                request.getEmail());
 
         validateCreateRequest(request);
         if (userRepository.existsByEmail(request.getEmail())) {
-            log.warn("Admin {} failed to create user – email already exists: {}", authentication.getName(), request.getEmail());
+            log.warn("Admin {} failed to create user – email already exists: {}", authentication.getName(),
+                    request.getEmail());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email jest juz zarejestrowany");
         }
 
@@ -122,24 +128,24 @@ public class UserController {
                 .build();
 
         User savedUser = userRepository.save(user);
-        log.info("Admin {} created new {} user with id {}", authentication.getName(), request.getRole(), savedUser.getId());
+        log.info("Admin {} created new {} user with id {}", authentication.getName(), request.getRole(),
+                savedUser.getId());
         return ResponseEntity.ok(toAdminUserResponse(savedUser));
     }
 
     /**
-        * Zmienia stan aktywnosci konta wskazanego uzytkownika.
+     * Zmienia stan aktywnosci konta wskazanego uzytkownika.
      *
-        * @param authentication dane aktualnie zalogowanego uzytkownika
-        * @param userId identyfikator docelowego uzytkownika
-        * @param request docelowy stan aktywnosci
-        * @return dane zaktualizowanego uzytkownika
+     * @param authentication dane aktualnie zalogowanego uzytkownika
+     * @param userId         identyfikator docelowego uzytkownika
+     * @param request        docelowy stan aktywnosci
+     * @return dane zaktualizowanego uzytkownika
      */
     @PatchMapping("/{userId}/active")
     public ResponseEntity<AdminUserResponse> updateUserActiveState(
             Authentication authentication,
             @PathVariable Integer userId,
-            @RequestBody ActiveStateRequest request
-    ) {
+            @RequestBody ActiveStateRequest request) {
         User currentUser = requireAdmin(authentication);
 
         if (request == null || request.getIsActive() == null) {
@@ -154,7 +160,8 @@ public class UserController {
         }
 
         if (user.getRole() == UserRole.ADMIN && !user.getId().equals(currentUser.getId()) && !request.getIsActive()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie mozna dezaktywowac innego administratora tym endpointem");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Nie mozna dezaktywowac innego administratora tym endpointem");
         }
 
         user.setIsActive(request.getIsActive());
@@ -193,7 +200,8 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rola jest wymagana");
         }
         if (request.getRole() != UserRole.RESIDENT && request.getRole() != UserRole.MAINTAINER) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Administrator moze utworzyc tylko konto mieszkanca lub konserwatora");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Administrator moze utworzyc tylko konto mieszkanca lub konserwatora");
         }
         if (request.getRole() == UserRole.RESIDENT && request.getLocalId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dla mieszkanca localId jest wymagane");
@@ -219,8 +227,7 @@ public class UserController {
                 user.getPhoneNumber(),
                 user.getRole(),
                 user.getLocalId(),
-                user.getIsActive()
-        );
+                user.getIsActive());
     }
 
     public static class ActiveStateRequest {
