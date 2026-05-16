@@ -132,14 +132,29 @@ public class StatisticReportService {
                     .count();
             data.iloscMieszkancow = String.valueOf(residentsCount);
         }
-        
-        data.mieszkancyDopisani = "0";
-        data.mieszkancyUsunieci = "0";
+
+        // mieszkancy dopisani do wspoldzielni to tacy, co maja status isActive na true i role RESIDENT
+        long activeResidents = userRepository.findAll().stream()
+            .filter(u -> u.getRole() == UserRole.RESIDENT)
+            .filter(u -> Boolean.TRUE.equals(u.getIsActive()))
+            .count();
+
+        // mieszkancy usunieci to usuniete konta, ale nadal przechowywane w celach archiwizacji
+        // przez co maja status isActive na false
+        long inactiveResidents = userRepository.findAll().stream()
+            .filter(u -> u.getRole() == UserRole.RESIDENT)
+            .filter(u -> Boolean.FALSE.equals(u.getIsActive()))
+            .count();
+
+        data.mieszkancyDopisani = String.valueOf(activeResidents);
+        data.mieszkancyUsunieci = String.valueOf(inactiveResidents);
 
         data.pozycje = new ArrayList<>();
         int index = 1;
-        List<Charge> charges = chargeRepository.findAll().stream()
-                .filter(c -> c.getPeriodStart() != null && !c.getPeriodStart().isBefore(dateFrom.toLocalDate()))
+        List<Charge> charges = chargeRepository.findChargesOverlappingPeriod(
+                dateFrom.toLocalDate(),
+                now.toLocalDate()
+            ).stream()
                 .sorted(Comparator.comparing(Charge::getPeriodStart))
                 .toList();
 
