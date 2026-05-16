@@ -258,6 +258,7 @@ fun PaymentDialog(
     onConfirm: (Double) -> Unit
 ) {
     var amountText by remember { mutableStateOf(String.format(Locale.US, "%.2f", initialAmount)) }
+    var errorText by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -271,20 +272,38 @@ fun PaymentDialog(
                     onValueChange = { newValue ->
                         if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
                             amountText = newValue
+                            val entered = newValue.toDoubleOrNull()
+                            errorText = if (entered != null && entered > initialAmount) {
+                                "Kwota nie może być większa niż " + String.format(Locale.US, "%.2f", initialAmount) + " zł"
+                            } else {
+                                null
+                            }
                         }
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
+                    singleLine = true,
+                    isError = errorText != null,
+                    supportingText = {
+                        if (errorText != null) {
+                            Text(text = errorText!!, color = MaterialTheme.colorScheme.error)
+                        } else {
+                            Text(text = "Pozostało do spłaty: " + String.format(Locale.US, "%.2f", initialAmount) + " zł")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         },
         confirmButton = {
-            Button(onClick = {
-                val amount = amountText.toDoubleOrNull()
-                if (amount != null && amount > 0) {
-                    onConfirm(amount)
+            Button(
+                enabled = errorText == null && amountText.toDoubleOrNull() != null && amountText.toDoubleOrNull()!! > 0,
+                onClick = {
+                    val amount = amountText.toDoubleOrNull()
+                    if (amount != null && amount > 0) {
+                        onConfirm(amount)
+                    }
                 }
-            }) {
+            ) {
                 Text("Potwierdź")
             }
         },

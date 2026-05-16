@@ -138,6 +138,20 @@ public class UserFinanceService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu do tej opłaty");
             }
         }
+
+        // Walidacja nadpłaty
+        BigDecimal chargeTotal = chargeRepository.findById(targetChargeId).orElseThrow().getTotalAmount();
+        if (chargeTotal == null) chargeTotal = BigDecimal.ZERO;
+        
+        BigDecimal alreadyPaid = paymentRepository.findByChargeId(targetChargeId).stream()
+                .map(Payment::getAmount)
+                .filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal remaining = chargeTotal.subtract(alreadyPaid);
+        if (payment.getAmount().compareTo(remaining) > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie można zapłacić więcej niż pozostało do spłaty (" + remaining + " zł)");
+        }
         
         Payment newPayment = Payment.builder()
                 .chargeId(targetChargeId)
