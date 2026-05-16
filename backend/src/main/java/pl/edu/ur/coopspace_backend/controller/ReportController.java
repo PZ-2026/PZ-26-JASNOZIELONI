@@ -60,7 +60,7 @@ public class ReportController {
         }
 
         /**
-         * Generuje raport statystyczny w formacie PDF.
+         * Generuje raport statystyczny spoldzielni w formacie PDF.
          */
         @GetMapping(value = "/statistic", produces = MediaType.APPLICATION_PDF_VALUE)
         public ResponseEntity<Resource> downloadStatisticReport(

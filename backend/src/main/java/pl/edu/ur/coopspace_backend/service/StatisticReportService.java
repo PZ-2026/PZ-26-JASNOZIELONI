@@ -20,6 +20,13 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+/**
+ * Serwis odpowiedzialny za generowanie raportu statystycznego spoldzielni.
+ *
+ * <p>Weryfikuje uprawnienia, pobiera niezbedne dane do raportu lub wylicza te
+ * statystyki na podstawie danych z bazy. Nastepnie mapuje dane do formatu
+ * wymaganego przez bliblioteke PDF.</p>
+ */
 public class StatisticReportService {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
@@ -52,6 +59,19 @@ public class StatisticReportService {
         this.chargeItemRepository = chargeItemRepository;
     }
 
+    /**
+     * Generuje raport statystyczny spoldzielni w formacie PDF dla wskazanych parametrow
+     * przez uzytkownika. Parametry sa wypisane ponizej.
+     *
+     * @param currentUserEmail
+     * @param months
+     * @param includeRevenue
+     * @param includeIssuesCount
+     * @param includeAvgResolutionTime
+     * @param includeResidentsCount
+     *
+     * @return Zwraca obiekt raportu na podstawie, ktorego powstaje gotowy dokument PDF i jest on wysylany do uzytkownika na frontend.
+     */
     public StatisticReportResult generateReport(
             String currentUserEmail,
             Integer months,
@@ -225,6 +245,9 @@ public class StatisticReportService {
         return building.getAddress() + " m. " + localSuffix;
     }
 
+    /**
+     * Tworzy plik raportu tymczasowo i po wyslaniu jest on usuwany.
+     */
     private Path createReportFile() {
         try {
             Path path = Files.createTempFile("statistic_report_", ".pdf");
@@ -235,6 +258,11 @@ public class StatisticReportService {
         }
     }
 
+    /**
+     * Funkcja do wygenerowania nazwy pliku dla raportu statystycznego spoldzielni.
+     * @param now
+     * @return nazwa pliku dla raportu statystycznego spoldzielni
+     */
     private String buildFileName(LocalDateTime now) {
         return String.format("Raport_Statystyczny_%d%02d%02d.pdf", now.getYear(), now.getMonthValue(), now.getDayOfMonth());
     }
