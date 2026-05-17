@@ -267,6 +267,38 @@ object IssueApiClient {
         Unit
     }
 
+    fun enqueueStatisticReportDownload(
+        context: Context,
+        token: String,
+        months: Int,
+        includeRevenue: Boolean,
+        includeIssuesCount: Boolean,
+        includeAvgResolutionTime: Boolean,
+        includeResidentsCount: Boolean
+    ): Result<Unit> = runCatching {
+        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val uriBuilder = Uri.parse("$baseUrl/api/reports/statistic").buildUpon()
+            .appendQueryParameter("months", months.toString())
+            .appendQueryParameter("includeRevenue", includeRevenue.toString())
+            .appendQueryParameter("includeIssuesCount", includeIssuesCount.toString())
+            .appendQueryParameter("includeAvgResolutionTime", includeAvgResolutionTime.toString())
+            .appendQueryParameter("includeResidentsCount", includeResidentsCount.toString())
+
+        val url = uriBuilder.build().toString()
+        val fileName = "Raport_Statystyczny.pdf"
+        val request = DownloadManager.Request(Uri.parse(url))
+            .addRequestHeader("Authorization", "Bearer $token")
+            .setTitle(fileName)
+            .setDescription("Pobieranie raportu statystycznego")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+            .setAllowedOverRoaming(false)
+
+        val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        manager.enqueue(request)
+        Unit
+    }
+
     suspend fun getMaintainers(token: String): Result<List<MaintainerDto>> = withContext(Dispatchers.IO) {
         runCatching {
             val response = request("GET", "/api/users/maintainers", token)

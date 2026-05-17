@@ -68,7 +68,7 @@ public class RepairProtocolService {
     }
 
     /**
-        * Generuje protokol naprawy w formacie PDF dla wskazanego zgloszenia.
+     * Generuje protokol naprawy w formacie PDF dla wskazanego zgloszenia.
      */
     public RepairProtocolResult generateRepairProtocol(String currentUserEmail, Integer issueId) {
         User currentUser = userRepository.findByEmail(currentUserEmail)
@@ -97,7 +97,7 @@ public class RepairProtocolService {
     }
 
     /**
-        * Sprawdza czy biezacy uzytkownik moze generowac protokol dla danego zgloszenia.
+     * Sprawdza czy biezacy uzytkownik moze generowac protokol dla danego zgloszenia.
      */
     private void assertCanGenerate(User currentUser, Issue issue) {
         if (currentUser.getRole() == UserRole.ADMIN) {
@@ -120,7 +120,7 @@ public class RepairProtocolService {
     }
 
     /**
-        * Buduje obiekt danych wejsciowych dla generatora PDF.
+     * Buduje obiekt danych wejsciowych dla generatora PDF.
      */
     private RepairProtocolData buildRepairProtocolData(Issue issue, User currentUser) {
         RepairProtocolData data = new RepairProtocolData();
@@ -151,7 +151,7 @@ public class RepairProtocolService {
     }
 
     /**
-        * Wyszukuje pierwsza date przejscia w status IN_PROGRESS.
+     * Wyszukuje pierwsza date przejscia w status IN_PROGRESS.
      */
     private LocalDateTime resolveStartDate(Issue issue) {
         List<IssueStatusHistory> history = issueStatusHistoryRepository.findByIssueId(issue.getId());
@@ -165,7 +165,7 @@ public class RepairProtocolService {
     }
 
     /**
-        * Wyszukuje date zakonczenia zgloszenia lub zwraca ostatnia aktualizacje.
+     * Wyszukuje date zakonczenia zgloszenia lub zwraca ostatnia aktualizacje.
      */
     private LocalDateTime resolveEndDate(Issue issue) {
         if (issue.getClosedAt() != null) {
@@ -219,7 +219,7 @@ public class RepairProtocolService {
     }
 
     /**
-        * Pobiera komentarze zgloszenia i mapuje na format tabeli protokolu.
+     * Pobiera komentarze zgloszenia i mapuje na format tabeli protokolu.
      */
     private List<RepairProtocolData.CommentRow> buildComments(Integer issueId) {
         List<IssueComment> comments = issueCommentRepository.findByIssueId(issueId)
@@ -289,7 +289,7 @@ public class RepairProtocolService {
     }
 
     /**
-        * Tworzy tymczasowy plik wyjsciowy dla generatora PDF.
+     * Tworzy tymczasowy plik wyjsciowy dla generatora PDF.
      */
     private Path createProtocolFile(Integer issueId) {
         try {
