@@ -181,14 +181,16 @@ public class StatisticReportService {
         for (Charge charge : charges) {
             List<ChargeItem> items = chargeItemRepository.findByChargeId(charge.getId());
             BigDecimal rent = BigDecimal.ZERO;
-            BigDecimal media = BigDecimal.ZERO;
-            BigDecimal other = BigDecimal.ZERO;
+            BigDecimal water = BigDecimal.ZERO;
+            BigDecimal electricity = BigDecimal.ZERO;
+            BigDecimal gas = BigDecimal.ZERO;
 
             for (ChargeItem item : items) {
                 BigDecimal total = item.getTotal() != null ? item.getTotal() : BigDecimal.ZERO;
                 if (item.getTypeId() == 3) rent = rent.add(total);
-                else if (item.getTypeId() == 1 || item.getTypeId() == 2 || item.getTypeId() == 4) media = media.add(total);
-                else other = other.add(total);
+                else if (item.getTypeId() == 1) water = water.add(total);
+                else if (item.getTypeId() == 2) electricity = electricity.add(total);
+                else if (item.getTypeId() == 4) gas = gas.add(total);
             }
 
             BigDecimal paidAmount = paymentRepository.findByChargeId(charge.getId()).stream()
@@ -207,11 +209,11 @@ public class StatisticReportService {
                     charge.getPeriodStart().format(DATE_FORMAT),
                     localName,
                     rent.toPlainString(),
-                    media.toPlainString(),
-                    other.toPlainString(),
+                    water.toPlainString(),
+                    electricity.toPlainString(),
+                    gas.toPlainString(),
                     remaining.toPlainString(),
-                    paidAmount.toPlainString(),
-                    "0"
+                    paidAmount.toPlainString()
             ));
         }
 
