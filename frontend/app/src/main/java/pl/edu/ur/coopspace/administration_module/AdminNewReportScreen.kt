@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Image
@@ -79,11 +78,6 @@ fun AdminNewReportScreen(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Medium
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu/Back")
-                    }
                 },
                 actions = {
                     IconButton(onClick = { /* TODO */ }) {

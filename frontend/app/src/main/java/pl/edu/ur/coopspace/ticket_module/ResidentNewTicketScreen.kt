@@ -6,7 +6,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Image
@@ -79,11 +78,6 @@ fun ResidentNewTicketScreen(
                         fontWeight = FontWeight.Medium
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu/Back")
-                    }
-                },
                 actions = {
                     IconButton(onClick = { /* TODO */ }) {
                         Box(
@@ -113,11 +107,7 @@ fun ResidentNewTicketScreen(
                 containerColor = Color(0xFFF7F2FA),
                 contentColor = Purple40,
             ) {
-                Text(
-                    text = "Cofnij",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                Text(text = "Cofnij", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
             }
         },
         containerColor = MaterialTheme.colorScheme.background

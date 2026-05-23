@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -64,17 +63,6 @@ fun UserPaymentHistoryScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "Menu",
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clickable { /* Drawer open if any */ }
-                    )
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
                     Text(
                         text = "Moje opłaty",
                         fontSize = 22.sp,

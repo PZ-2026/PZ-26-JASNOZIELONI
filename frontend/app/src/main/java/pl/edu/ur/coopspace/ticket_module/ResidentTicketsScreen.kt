@@ -5,12 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.foundation.background
 import androidx.compose.ui.Alignment
@@ -123,15 +119,6 @@ fun ResidentTicketsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.Menu,
-                        contentDescription = "Menu",
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.size(28.dp).clickable { /* Drawer open if any */ }
-                    )
-                    
-                    Spacer(modifier = Modifier.width(16.dp))
-                    
                     val titleText = if (ticketType == "FINISHED") "Zakończone Zgłoszenia" else "Aktualne zgłoszenia"
                     Text(
                         text = titleText,
@@ -172,14 +159,14 @@ fun ResidentTicketsScreen(
             if (isLoading) {
                 Box(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
+                    contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
             } else if (errorMessage != null) {
                 Box(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
                 }
@@ -280,5 +267,5 @@ fun TicketListItem(
             }
         }
     }
-    androidx.compose.material3.HorizontalDivider(color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.2f), thickness = 1.dp)
+    HorizontalDivider(color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.2f), thickness = 1.dp)
 }

@@ -104,17 +104,6 @@ fun AdminReportsInProgressScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menu",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clickable { /* TODO */ }
-                )
-                
-                Spacer(modifier = Modifier.width(16.dp))
-                
                 Text(
                     text = "Zgłoszenia",
                     fontSize = 22.sp,
@@ -251,6 +240,8 @@ fun AdminReportsInProgressScreen(
                 Text("Filtruj")
             }
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
 
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {

@@ -20,11 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -295,6 +297,8 @@ fun AdminContactScreen(
 
 @Composable
 fun AdminCard(admin: AdminContact) {
+    val uriHandler = LocalUriHandler.current
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -331,9 +335,30 @@ fun AdminCard(admin: AdminContact) {
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Column {
-                    Text(text = admin.phone, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
+                    Text(
+                        text = admin.phone,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium,
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier.clickable {
+                            val phone = admin.phone.filter { it.isDigit() || it == '+' }
+                            if (phone.isNotBlank()) {
+                                uriHandler.openUri("tel:$phone")
+                            }
+                        }
+                    )
                     Text(text = admin.address, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-                    Text(text = admin.email, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text(
+                        text = admin.email,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 12.sp,
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier.clickable {
+                            if (admin.email.isNotBlank()) {
+                                uriHandler.openUri("mailto:${admin.email}")
+                            }
+                        }
+                    )
                 }
             }
         }

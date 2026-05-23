@@ -88,19 +88,19 @@ fun AdminFinishedReportsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menu",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clickable { /* Opcjonalne otwarcie szuflady */ }
-                )
-                
-                Spacer(modifier = Modifier.width(16.dp))
+//                Icon(
+//                    imageVector = Icons.Default.Menu,
+//                    contentDescription = "Menu",
+//                    tint = MaterialTheme.colorScheme.onBackground,
+//                    modifier = Modifier
+//                        .size(28.dp)
+//                        .clickable { /* Opcjonalne otwarcie szuflady */ }
+//                )
+//
+//                Spacer(modifier = Modifier.width(16.dp))
                 
                 Text(
-                    text = "Zakończone Zgłoszenia",
+                    text = "Zakończone zgłoszenia",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground
@@ -202,6 +202,8 @@ fun AdminFinishedReportsScreen(
                 Text("Filtruj")
             }
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
 
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {

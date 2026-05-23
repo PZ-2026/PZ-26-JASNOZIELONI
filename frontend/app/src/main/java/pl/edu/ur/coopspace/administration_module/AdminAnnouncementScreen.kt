@@ -42,18 +42,12 @@ fun AdminAnnouncementScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Tytuł z "trzykropkiem"
+            // Tytuł
             Row(verticalAlignment = Alignment.Top) {
                 Text(
                     text = "Ogłoszenia",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Text(
-                    text = "•••",
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(start = 2.dp, top = 2.dp),
                     color = MaterialTheme.colorScheme.onBackground
                 )
             }
