@@ -26,3 +26,5 @@ services:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
     depends_on:
       - postgres
+    volumes:
+      - ./backend/uploads:/app/uploads
