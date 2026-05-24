@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -22,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
 import pl.edu.ur.coopspace.administration_module.AnnouncementApiClient
 import pl.edu.ur.coopspace.administration_module.DocumentDto
 import pl.edu.ur.coopspace.auth.AuthSessionStore
@@ -72,15 +70,6 @@ fun UserDocumentsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "Menu",
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.size(28.dp).clickable { /* Drawer open if any */ }
-                    )
-                    
-                    Spacer(modifier = Modifier.width(16.dp))
-                    
                     Text(
                         text = "Dokumenty",
                         fontSize = 22.sp,

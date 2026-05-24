@@ -4,7 +4,7 @@ Aplikacja mobilna w Kotlin.
 
 **Uwaga:**
 
-W kliencie Android używany jest adres http://10.0.2.2:8080 (działa dla emulatora Android i backendu uruchomionego lokalnie na komputerze) do łączenia z backendem. Dla fizycznego telefonu trzeba podmienić BASE_URL na IP komputera w tej samej sieci. Adres ip backendu ustawia się w pliku [build.grandle.kts](./app/build.gradle.kts).
+W kliencie Android używany jest adres http://10.0.2.2:8080 (działa dla emulatora Android i backendu uruchomionego lokalnie na komputerze) do łączenia z backendem. Dla fizycznego telefonu trzeba podmienić BASE_URL na IP komputera w tej samej sieci. Adres ip backendu ustawia się w pliku [build.grandle.kts](./app/build.gradle.kts). Lecz adres ip backendu można zmienić również na ekranie logowania aplikacji mobilnej.
 
 Po poprawnym logowaniu:
 ADMINISTRATOR trafia na admin_home.

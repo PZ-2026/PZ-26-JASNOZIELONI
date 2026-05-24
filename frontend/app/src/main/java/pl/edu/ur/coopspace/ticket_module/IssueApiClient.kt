@@ -8,12 +8,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import pl.edu.ur.coopspace.BuildConfig
 import java.io.BufferedOutputStream
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import pl.edu.ur.coopspace.network.BackendUrlStore
 
 data class IssueDto(
     val id: Int,
@@ -173,7 +173,7 @@ object IssueApiClient {
                 ?: throw IllegalStateException("Nie udało się odczytać zdjęcia")
 
             val boundary = "----CoopSpaceBoundary${System.currentTimeMillis()}"
-            val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+            val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
             val url = URL("$baseUrl/api/issues/$issueId/images")
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
@@ -210,7 +210,7 @@ object IssueApiClient {
     }
 
     fun enqueueRepairProtocolDownload(context: Context, token: String, issueId: Int): Result<Unit> = runCatching {
-        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
         val url = "$baseUrl/api/issues/$issueId/repair-protocol"
         val fileName = "Protokol_Naprawy_$issueId.pdf"
         val request = DownloadManager.Request(Uri.parse(url))
@@ -235,7 +235,7 @@ object IssueApiClient {
         maintainerId: Int?,
         buildingId: Int?
     ): Result<Unit> = runCatching {
-        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
         val uriBuilder = Uri.parse("$baseUrl/api/reports/maintenance").buildUpon()
             .appendQueryParameter("months", months.toString())
 
@@ -276,7 +276,7 @@ object IssueApiClient {
         includeAvgResolutionTime: Boolean,
         includeResidentsCount: Boolean
     ): Result<Unit> = runCatching {
-        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
         val uriBuilder = Uri.parse("$baseUrl/api/reports/statistic").buildUpon()
             .appendQueryParameter("months", months.toString())
             .appendQueryParameter("includeRevenue", includeRevenue.toString())
@@ -341,7 +341,7 @@ object IssueApiClient {
     }
 
     private fun request(method: String, path: String, token: String, body: String? = null): String {
-        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
         val url = URL("$baseUrl$path")
         val connection = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = method

@@ -12,4 +12,19 @@ services:
       - ./backend/database:/docker-entrypoint-initdb.d
     ports:
       - '5434:5432'
-
+  backend:
+    container_name: spring_boot_app
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/projekt_pz
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=ala
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend/uploads:/app/uploads

@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import pl.edu.ur.coopspace.BuildConfig
+import pl.edu.ur.coopspace.network.BackendUrlStore
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -109,7 +109,7 @@ object AnnouncementApiClient {
                 ?: throw IllegalStateException("Nie udało się odczytać pliku")
 
             val boundary = "----CoopSpaceBoundary${System.currentTimeMillis()}"
-            val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+            val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
             val url = URL("$baseUrl/api/announcements/documents")
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
@@ -157,7 +157,7 @@ object AnnouncementApiClient {
     }
 
     fun enqueueDocumentDownload(context: Context, token: String, document: DocumentDto): Result<Unit> = runCatching {
-        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
         val url = "$baseUrl/api/announcements/documents/${document.id}/download"
 
         val sanitizedTitle = document.title.ifBlank { "dokument-${document.id}" }
@@ -205,7 +205,7 @@ object AnnouncementApiClient {
     }
 
     private fun request(method: String, path: String, token: String, body: String? = null): String {
-        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
         val url = URL("$baseUrl$path")
         val connection = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = method

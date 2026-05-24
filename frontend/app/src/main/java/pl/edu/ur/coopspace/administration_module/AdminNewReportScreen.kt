@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Image
@@ -79,11 +78,6 @@ fun AdminNewReportScreen(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Medium
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu/Back")
-                    }
                 },
                 actions = {
                     IconButton(onClick = { /* TODO */ }) {
@@ -387,6 +381,19 @@ fun AdminNewReportScreen(
                     Text("Wyślij zgłoszenie")
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = onBackClick,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                shape = RoundedCornerShape(50),
+                contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
+            ) {
+                Text(text = "Cofnij", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

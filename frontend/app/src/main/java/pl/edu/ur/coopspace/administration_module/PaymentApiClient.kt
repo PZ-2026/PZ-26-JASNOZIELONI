@@ -4,8 +4,8 @@ import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import pl.edu.ur.coopspace.BuildConfig
 import pl.edu.ur.coopspace.auth.AuthSessionStore
+import pl.edu.ur.coopspace.network.BackendUrlStore
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -21,7 +21,7 @@ data class CurrentRates(
 object PaymentApiClient {
     suspend fun getRates(context: Context): Result<CurrentRates> = withContext(Dispatchers.IO) {
         runCatching {
-            val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+            val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
             val url = URL("$baseUrl/api/admin/payments/rates")
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
@@ -59,7 +59,7 @@ object PaymentApiClient {
         gasRate: String?
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+            val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
             val url = URL("$baseUrl/api/admin/payments/rates")
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "PUT"

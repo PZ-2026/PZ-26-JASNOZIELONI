@@ -3,9 +3,9 @@
 Backend w Java Spring Boot. Wykorzystuje on bazę danych PostgreSQL.
 Wymagana jest Java w wersji 25.
 
-## Kontener Dockera z bazą danych
+## Kontener Dockera z bazą danych i Spring Boot
 
-Aby uruchomić bazę danych w kontenerze dockera, należy
+Aby uruchomić bazę danych w kontenerze dockera wraz z Spring Boot, należy
 przejśc do folderu głownego repozytorium. Zbudować kontener poleceniem:
 ```bash
 docker-compose build
@@ -26,7 +26,10 @@ Migracje wykonują się automatycznie przy starcie backednu.
 
 ## Uruchamianie backendu
 
-Backend można uruchamiać z poziomu Inteliij, poprzez uruchomienie głównego pliku, czyli
+Backend jest uruchamiany z poziomu kontenera i też w kontenerze Dockera jest kompilowany. Przekierowany jest port `8080`
+do systemu gospodarza. Istnieją również inne możliwości uruchamiania backendu opisane poniżej.
+
+Backend można uruchamiać z poziomu IntelliJ, poprzez uruchomienie głównego pliku, czyli
 `CoopspaceBackendApplication.java`.
 Drugim sposobem jest uruchomienie z poziomu linii poleceń. Robi się to poleceniem:
 - Czysty start (rebuild): Jeśli masz problemy ze starymi plikami buildu, wyczyść je przed uruchomieniem:

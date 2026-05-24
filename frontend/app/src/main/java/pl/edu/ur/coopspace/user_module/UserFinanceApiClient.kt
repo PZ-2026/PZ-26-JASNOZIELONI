@@ -5,8 +5,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import pl.edu.ur.coopspace.BuildConfig
 import pl.edu.ur.coopspace.auth.AuthSessionStore
+import pl.edu.ur.coopspace.network.BackendUrlStore
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -69,7 +69,7 @@ data class UserChargeDetails(
 
 object UserFinanceApiClient {
 
-    private fun getBaseUrl() = BuildConfig.BASE_URL.trimEnd('/')
+    private fun getBaseUrl() = BackendUrlStore.getBaseUrl().trimEnd('/')
 
     private fun setupConnection(urlString: String, context: Context): HttpURLConnection {
         val url = URL(urlString)

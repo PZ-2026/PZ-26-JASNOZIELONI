@@ -88,19 +88,8 @@ fun AdminFinishedReportsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menu",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clickable { /* Opcjonalne otwarcie szuflady */ }
-                )
-                
-                Spacer(modifier = Modifier.width(16.dp))
-                
                 Text(
-                    text = "Zakończone Zgłoszenia",
+                    text = "Zakończone zgłoszenia",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Normal,
                     color = MaterialTheme.colorScheme.onBackground
@@ -203,6 +192,8 @@ fun AdminFinishedReportsScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(32.dp))
+
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -218,14 +209,16 @@ fun AdminFinishedReportsScreen(
                 Text("Brak zgłoszeń do wyświetlenia", color = Color.Gray, fontSize = 16.sp)
             }
         } else {
-            Card(
+            LazyColumn(
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                shape = RoundedCornerShape(6.dp),
-                border = BorderStroke(1.dp, Color.Black),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF90D18F))
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    itemsIndexed(filteredReports) { index, report ->
+                itemsIndexed(filteredReports) { index, report ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF90D18F))
+                    ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -258,14 +251,6 @@ fun AdminFinishedReportsScreen(
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
-                        }
-
-                        if (index < filteredReports.size - 1) {
-                            HorizontalDivider(
-                                modifier = Modifier.fillMaxWidth(),
-                                thickness = 1.dp,
-                                color = Color.Black
-                            )
                         }
                     }
                 }

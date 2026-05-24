@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Stars
 import androidx.compose.material3.*
@@ -22,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
 import pl.edu.ur.coopspace.administration_module.AnnouncementApiClient
 import pl.edu.ur.coopspace.administration_module.AnnouncementDto
 import pl.edu.ur.coopspace.auth.AuthSessionStore
@@ -38,15 +36,12 @@ fun UserAnnouncementHistoryScreen(
     
     var announcements by remember { mutableStateOf<List<AnnouncementDto>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    val checkedStates = remember { mutableStateListOf<Boolean>() }
 
     LaunchedEffect(token) {
         if (token != null) {
             AnnouncementApiClient.getAnnouncements(token)
                 .onSuccess { data ->
                     announcements = data
-                    checkedStates.clear()
-                    checkedStates.addAll(List(data.size) { false })
                     isLoading = false
                 }
                 .onFailure {
@@ -74,19 +69,8 @@ fun UserAnnouncementHistoryScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "Menu",
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clickable { /* Drawer open if any */ }
-                    )
-                    
-                    Spacer(modifier = Modifier.width(16.dp))
-                    
                     Text(
-                        text = "Ogłoszenia···",
+                        text = "Ogłoszenia",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onBackground
@@ -159,20 +143,6 @@ fun UserAnnouncementHistoryScreen(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
-                            
-                            if (index < checkedStates.size) {
-                                Checkbox(
-                                    checked = checkedStates[index],
-                                    onCheckedChange = { checkedStates[index] = it },
-                                    colors = CheckboxDefaults.colors(
-                                        checkedColor = Color(0xFF6750A4),
-                                        uncheckedColor = Color.Gray
-                                    ),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                            
-                            Spacer(modifier = Modifier.width(16.dp))
                             
                             Row(
                                 modifier = Modifier.clickable { onAnnouncementClick(ann.id) },

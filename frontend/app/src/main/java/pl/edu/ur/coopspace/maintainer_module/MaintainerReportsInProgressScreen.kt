@@ -105,17 +105,6 @@ fun MaintainerReportsInProgressScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menu",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clickable { /* Opcjonalne */ }
-                )
-                
-                Spacer(modifier = Modifier.width(16.dp))
-                
                 Text(
                     text = "Moje Aktualne Zgłoszenia",
                     fontSize = 18.sp,
