@@ -4,6 +4,8 @@ WORKDIR /app
 COPY gradlew build.gradle settings.gradle /app/
 COPY gradle /app/gradle
 COPY src /app/src
+# kopiowanie wlasnej biblioteki do katalogu libs
+COPY libs /app/libs
 
 RUN chmod +x /app/gradlew
 RUN /app/gradlew bootJar -x test
