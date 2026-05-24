@@ -98,27 +98,6 @@ fun MaintainerHomeScreen(
                 onClick = onNavigateToCommunication
             )
         }
-
-        // Bottom Back Button
-        Button(
-            onClick = onBack,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
-            ),
-            shape = RoundedCornerShape(50),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 16.dp)
-                .height(40.dp)
-        ) {
-            Text(
-                text = "Cofnij",
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
     }
 }
 

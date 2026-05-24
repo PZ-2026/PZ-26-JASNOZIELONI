@@ -17,13 +17,13 @@ import pl.edu.ur.coopspace_backend.repository.UserRepository;
 import java.util.Comparator;
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/buildings")
-@CrossOrigin(origins = "*")
 /**
  * Tylko-do-odczytu API administracyjnego dla slownika budynkow.
  * Zwraca liste budynkow do raportu zgloszen konserwatorskich.
  */
+@RestController
+@RequestMapping("/api/buildings")
+@CrossOrigin(origins = "*")
 public class BuildingController {
 
     private final BuildingRepository buildingRepository;
