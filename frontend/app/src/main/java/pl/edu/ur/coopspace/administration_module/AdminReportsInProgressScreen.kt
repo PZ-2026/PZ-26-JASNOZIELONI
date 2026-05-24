@@ -258,24 +258,25 @@ fun AdminReportsInProgressScreen(
                 Text("Brak zgłoszeń do wyświetlenia", color = Color.Gray, fontSize = 16.sp)
             }
         } else {
-            Card(
+            LazyColumn(
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                shape = RoundedCornerShape(2.dp),
-                border = BorderStroke(1.dp, Color.Black),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    itemsIndexed(filteredReports) { index, report ->
-                        val bgColor = if (report.status == InProgressReportStatus.ASSIGNED) {
-                            Color(0xFF9ACDE7)
-                        } else {
-                            Color(0xFFDFB45E)
-                        }
+                itemsIndexed(filteredReports) { _, report ->
+                    val bgColor = if (report.status == InProgressReportStatus.ASSIGNED) {
+                        Color(0xFF9ACDE7)
+                    } else {
+                        Color(0xFFDFB45E)
+                    }
 
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = CardDefaults.cardColors(containerColor = bgColor)
+                    ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(bgColor)
                                 .clickable { onTicketClick(report.id) }
                                 .padding(horizontal = 24.dp, vertical = 18.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -305,14 +306,6 @@ fun AdminReportsInProgressScreen(
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
-                        }
-
-                        if (index < filteredReports.size - 1) {
-                            HorizontalDivider(
-                                modifier = Modifier.fillMaxWidth(),
-                                thickness = 1.dp,
-                                color = Color.Black
-                            )
                         }
                     }
                 }

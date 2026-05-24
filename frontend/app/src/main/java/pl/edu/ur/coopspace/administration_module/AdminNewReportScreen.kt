@@ -381,6 +381,19 @@ fun AdminNewReportScreen(
                     Text("Wyślij zgłoszenie")
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = onBackClick,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                shape = RoundedCornerShape(50),
+                contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
+            ) {
+                Text(text = "Cofnij", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

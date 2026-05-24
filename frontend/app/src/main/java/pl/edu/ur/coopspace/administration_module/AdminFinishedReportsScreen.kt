@@ -209,14 +209,16 @@ fun AdminFinishedReportsScreen(
                 Text("Brak zgłoszeń do wyświetlenia", color = Color.Gray, fontSize = 16.sp)
             }
         } else {
-            Card(
+            LazyColumn(
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                shape = RoundedCornerShape(6.dp),
-                border = BorderStroke(1.dp, Color.Black),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF90D18F))
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    itemsIndexed(filteredReports) { index, report ->
+                itemsIndexed(filteredReports) { index, report ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF90D18F))
+                    ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -249,14 +251,6 @@ fun AdminFinishedReportsScreen(
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
-                        }
-
-                        if (index < filteredReports.size - 1) {
-                            HorizontalDivider(
-                                modifier = Modifier.fillMaxWidth(),
-                                thickness = 1.dp,
-                                color = Color.Black
-                            )
                         }
                     }
                 }

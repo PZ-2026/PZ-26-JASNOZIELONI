@@ -36,15 +36,12 @@ fun UserAnnouncementHistoryScreen(
     
     var announcements by remember { mutableStateOf<List<AnnouncementDto>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    val checkedStates = remember { mutableStateListOf<Boolean>() }
 
     LaunchedEffect(token) {
         if (token != null) {
             AnnouncementApiClient.getAnnouncements(token)
                 .onSuccess { data ->
                     announcements = data
-                    checkedStates.clear()
-                    checkedStates.addAll(List(data.size) { false })
                     isLoading = false
                 }
                 .onFailure {
@@ -146,20 +143,6 @@ fun UserAnnouncementHistoryScreen(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
-                            
-                            if (index < checkedStates.size) {
-                                Checkbox(
-                                    checked = checkedStates[index],
-                                    onCheckedChange = { checkedStates[index] = it },
-                                    colors = CheckboxDefaults.colors(
-                                        checkedColor = Color(0xFF6750A4),
-                                        uncheckedColor = Color.Gray
-                                    ),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                            
-                            Spacer(modifier = Modifier.width(16.dp))
                             
                             Row(
                                 modifier = Modifier.clickable { onAnnouncementClick(ann.id) },
