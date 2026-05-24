@@ -52,8 +52,8 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
-import pl.edu.ur.coopspace.BuildConfig
 import pl.edu.ur.coopspace.auth.AuthSessionStore
+import pl.edu.ur.coopspace.network.BackendUrlStore
 
 @Composable
 fun IssueImagesGallery(
@@ -165,7 +165,7 @@ fun IssueImagesGallery(
                                 val authToken = AuthSessionStore.getToken(context)
                                 AsyncImage(
                                     model = ImageRequest.Builder(context)
-                                        .data(BuildConfig.BASE_URL.trimEnd('/') + image.downloadUrl)
+                                        .data(BackendUrlStore.getBaseUrl().trimEnd('/') + image.downloadUrl)
                                         .apply {
                                             if (!authToken.isNullOrBlank()) {
                                                 addHeader("Authorization", "Bearer $authToken")
@@ -237,7 +237,7 @@ fun IssueImagesGallery(
                 val authToken = AuthSessionStore.getToken(context)
                 AsyncImage(
                     model = ImageRequest.Builder(context)
-                        .data(BuildConfig.BASE_URL.trimEnd('/') + selectedImage!!.downloadUrl)
+                        .data(BackendUrlStore.getBaseUrl().trimEnd('/') + selectedImage!!.downloadUrl)
                         .apply {
                             if (!authToken.isNullOrBlank()) {
                                 addHeader("Authorization", "Bearer $authToken")

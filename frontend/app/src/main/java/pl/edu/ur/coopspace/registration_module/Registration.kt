@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import pl.edu.ur.coopspace.auth.AuthApiClient
 import pl.edu.ur.coopspace.auth.AuthSessionStore
+import pl.edu.ur.coopspace.network.BackendUrlStore
 
 enum class UserRole { ADMINISTRATOR, MIESZKANIEC, KONSERWATOR }
 
@@ -82,6 +84,9 @@ fun LoginScreen(
     onLoginSuccess: (UserRole) -> Unit
 ) {
     // Domyślnie ustawiamy maila admina dla łatwego testowania
+    var backendUrl by rememberSaveable { mutableStateOf(BackendUrlStore.getBaseUrl()) }
+    var showBackendUrlDialog by remember { mutableStateOf(false) }
+    var backendUrlDraft by rememberSaveable { mutableStateOf(backendUrl) }
     var login by remember { mutableStateOf("admin@test.com") }
     var password by remember { mutableStateOf("admin123") }
     val rememberMe = true
@@ -100,6 +105,26 @@ fun LoginScreen(
     ) {
         Spacer(modifier = Modifier.height(32.dp))
         HeaderComponent()
+
+        Button(
+            onClick = {
+                backendUrlDraft = backendUrl
+                showBackendUrlDialog = true
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+            shape = RoundedCornerShape(50),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Ustaw adres serwera", color = MaterialTheme.colorScheme.primary)
+        }
+        Text(
+            text = "Aktualny adres: $backendUrl",
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp, top = 4.dp, bottom = 16.dp)
+        )
 
         TextField(
             value = login,
@@ -173,6 +198,8 @@ fun LoginScreen(
             onClick = {
                 if (isLoading) return@Button
 
+                BackendUrlStore.setBaseUrl(context, backendUrl)
+
                 if (login.isBlank() || password.isBlank()) {
                     errorMessage = "Uzupełnij email i hasło"
                     return@Button
@@ -226,6 +253,57 @@ fun LoginScreen(
             } else {
                 Text(text = "Zaloguj", color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 32.dp))
             }
+        }
+
+        if (showBackendUrlDialog) {
+            AlertDialog(
+                onDismissRequest = { showBackendUrlDialog = false },
+                title = { Text(text = "Ustaw adres serwera") },
+                text = {
+                    Column {
+                        Text(
+                            text = "Wpisz IP lub pełny adres backendu. Jeśli nie podasz protokołu, zostanie dodane http://.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        TextField(
+                            value = backendUrlDraft,
+                            onValueChange = {
+                                backendUrlDraft = it
+                                errorMessage = null
+                            },
+                            label = { Text("Adres serwera") },
+                            placeholder = { Text("np. 192.168.0.10:8080") },
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            BackendUrlStore.setBaseUrl(context, backendUrlDraft)
+                            backendUrl = BackendUrlStore.getBaseUrl()
+                            showBackendUrlDialog = false
+                        }
+                    ) {
+                        Text(text = "Zapisz")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showBackendUrlDialog = false }) {
+                        Text(text = "Anuluj")
+                    }
+                }
+            )
         }
 
         Spacer(modifier = Modifier.weight(1f))

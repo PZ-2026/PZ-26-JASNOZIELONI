@@ -4,7 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import pl.edu.ur.coopspace.BuildConfig
+import pl.edu.ur.coopspace.network.BackendUrlStore
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -133,7 +133,7 @@ object UserAdminApiClient {
     }
 
     private fun request(method: String, path: String, token: String, body: String? = null): String {
-        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
         val url = URL("$baseUrl$path")
         val connection = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = method

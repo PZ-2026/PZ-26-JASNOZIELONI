@@ -3,7 +3,7 @@ package pl.edu.ur.coopspace.auth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import pl.edu.ur.coopspace.BuildConfig
+import pl.edu.ur.coopspace.network.BackendUrlStore
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -23,7 +23,7 @@ data class BackendAuthResponse(
 object AuthApiClient {
     suspend fun login(email: String, password: String): Result<BackendAuthResponse> = withContext(Dispatchers.IO) {
         runCatching {
-            val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+            val baseUrl = BackendUrlStore.getBaseUrl().trimEnd('/')
             val url = URL("$baseUrl/api/auth/login")
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
