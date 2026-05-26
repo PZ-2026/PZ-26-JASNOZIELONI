@@ -78,13 +78,13 @@ public class RepairProtocolService {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Generuje protokol naprawy w formacie PDF dla wskazanego zgloszenia.
-        *
-        * @param currentUserEmail current user email
-        * @param issueId issue identifier
-        * @return generated protocol metadata with file path and file name
-     */
+     /**
+      * Generates a repair protocol in PDF format for the specified issue.
+      *
+      * @param currentUserEmail current user email
+      * @param issueId issue identifier
+      * @return generated protocol metadata with file path and file name
+      */
     public RepairProtocolResult generateRepairProtocol(String currentUserEmail, Integer issueId) {
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Uzytkownik niezalogowany"));
@@ -112,7 +112,7 @@ public class RepairProtocolService {
     }
 
     /**
-     * Sprawdza czy biezacy uzytkownik moze generowac protokol dla danego zgloszenia.
+     * Checks whether the current user can generate a protocol for the given issue.
      */
     private void assertCanGenerate(User currentUser, Issue issue) {
         if (currentUser.getRole() == UserRole.ADMIN) {
@@ -135,7 +135,7 @@ public class RepairProtocolService {
     }
 
     /**
-     * Buduje obiekt danych wejsciowych dla generatora PDF.
+     * Builds the input data object for the PDF generator.
      */
     private RepairProtocolData buildRepairProtocolData(Issue issue, User currentUser) {
         RepairProtocolData data = new RepairProtocolData();
@@ -166,7 +166,7 @@ public class RepairProtocolService {
     }
 
     /**
-     * Wyszukuje pierwsza date przejscia w status IN_PROGRESS.
+     * Finds the first date when the issue entered the IN_PROGRESS status.
      */
     private LocalDateTime resolveStartDate(Issue issue) {
         List<IssueStatusHistory> history = issueStatusHistoryRepository.findByIssueId(issue.getId());
@@ -180,7 +180,7 @@ public class RepairProtocolService {
     }
 
     /**
-     * Wyszukuje date zakonczenia zgloszenia lub zwraca ostatnia aktualizacje.
+     * Finds the issue completion date or falls back to the last update date.
      */
     private LocalDateTime resolveEndDate(Issue issue) {
         if (issue.getClosedAt() != null) {
@@ -234,7 +234,7 @@ public class RepairProtocolService {
     }
 
     /**
-     * Pobiera komentarze zgloszenia i mapuje na format tabeli protokolu.
+     * Fetches issue comments and maps them to the protocol table format.
      */
     private List<RepairProtocolData.CommentRow> buildComments(Integer issueId) {
         List<IssueComment> comments = issueCommentRepository.findByIssueId(issueId)
@@ -304,7 +304,7 @@ public class RepairProtocolService {
     }
 
     /**
-     * Tworzy tymczasowy plik wyjsciowy dla generatora PDF.
+     * Creates a temporary output file for the PDF generator.
      */
     private Path createProtocolFile(Integer issueId) {
         try {

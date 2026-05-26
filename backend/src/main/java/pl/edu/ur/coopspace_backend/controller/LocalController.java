@@ -40,12 +40,12 @@ public class LocalController {
         this.userRepository = userRepository;
     }
 
-    /**
-        * Zwraca aktywne lokale posortowane po budynku, numerze lokalu i klatce.
-     *
-        * @param authentication dane aktualnie zalogowanego uzytkownika
-        * @return lista lokali do wyboru w interfejsie
-     */
+     /**
+      * Returns active units sorted by building, unit number, and staircase.
+      *
+      * @param authentication current user authentication
+      * @return list of units available for selection in the interface
+      */
     @GetMapping
     public ResponseEntity<List<LocalSummaryResponse>> getLocals(Authentication authentication) {
         requireAdmin(authentication);

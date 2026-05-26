@@ -39,7 +39,7 @@ public class ReportController {
         }
 
         /**
-         * Generuje raport zgloszen konserwatorskich w formacie PDF.
+         * Generates a maintenance issue report in PDF format.
          *
          * @param authentication current user authentication
          * @param months optional period length in months
@@ -74,7 +74,7 @@ public class ReportController {
         }
 
         /**
-         * Generuje raport statystyczny spoldzielni w formacie PDF.
+         * Generates a cooperative statistic report in PDF format.
          *
          * @param authentication current user authentication
          * @param months optional period length in months

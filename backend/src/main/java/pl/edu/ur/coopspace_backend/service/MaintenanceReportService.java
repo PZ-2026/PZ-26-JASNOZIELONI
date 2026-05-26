@@ -34,7 +34,7 @@ import java.util.Optional;
 
 
 /**
- * Serwis odpowiedzialny za generowanie raportu zgloszen konserwatorskich.
+ * Service responsible for generating maintenance issue reports.
  */
 @Service
 public class MaintenanceReportService {
@@ -74,15 +74,15 @@ public class MaintenanceReportService {
     }
 
     /**
-     * Generuje raport zgloszen konserwatorskich w formacie PDF.
-         *
-         * @param currentUserEmail current user email
-         * @param months optional period length in months
-         * @param status optional issue status filter
-         * @param categoryId optional issue category filter
-         * @param maintainerId optional maintainer filter
-         * @param buildingId optional building filter
-         * @return generated report metadata with file path and file name
+     * Generates a maintenance issue report in PDF format.
+     *
+     * @param currentUserEmail current user email
+     * @param months optional period length in months
+     * @param status optional issue status filter
+     * @param categoryId optional issue category filter
+     * @param maintainerId optional maintainer filter
+     * @param buildingId optional building filter
+     * @return generated report metadata with file path and file name
      */
     public MaintenanceReportResult generateReport(
             String currentUserEmail,

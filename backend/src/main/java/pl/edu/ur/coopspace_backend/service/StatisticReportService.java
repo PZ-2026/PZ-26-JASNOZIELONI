@@ -71,17 +71,16 @@ public class StatisticReportService {
     }
 
     /**
-     * Generuje raport statystyczny spoldzielni w formacie PDF dla wskazanych parametrow
-     * przez uzytkownika. Parametry sa wypisane ponizej.
+     * Generates a cooperative statistic report in PDF format for the parameters provided
+     * by the user.
      *
-    * @param currentUserEmail current user email
-    * @param months optional period length in months
-    * @param includeRevenue whether to include revenue metrics
-    * @param includeIssuesCount whether to include issue count metrics
-    * @param includeAvgResolutionTime whether to include average resolution time metrics
-    * @param includeResidentsCount whether to include resident count metrics
-     *
-    * @return metadata of generated statistic report file
+     * @param currentUserEmail current user email
+     * @param months optional period length in months
+     * @param includeRevenue whether to include revenue metrics
+     * @param includeIssuesCount whether to include issue count metrics
+     * @param includeAvgResolutionTime whether to include average resolution time metrics
+     * @param includeResidentsCount whether to include resident count metrics
+     * @return metadata of the generated statistic report file
      */
     public StatisticReportResult generateReport(
             String currentUserEmail,
@@ -259,9 +258,10 @@ public class StatisticReportService {
     }
 
     /**
-     * Tworzy plik raportu tymczasowo i po wyslaniu jest on usuwany.
-     * @throws ResponseStatusException gdy nie udalo sie przygotowac pliku z raportem
-     * @return sciezka do pliku z raportem
+     * Creates a temporary report file and deletes it after the response is sent.
+     *
+     * @return path to the report file
+     * @throws ResponseStatusException when the report file cannot be prepared
      */
     private Path createReportFile() {
         try {
@@ -274,9 +274,10 @@ public class StatisticReportService {
     }
 
     /**
-     * Funkcja do wygenerowania nazwy pliku dla raportu statystycznego spoldzielni.
-     * @param now
-     * @return nazwa pliku dla raportu statystycznego spoldzielni
+     * Builds the filename for the cooperative statistic report.
+     *
+     * @param now current date and time
+     * @return report file name
      */
     private String buildFileName(LocalDateTime now) {
         return String.format("Raport_Statystyczny_%d%02d%02d.pdf", now.getYear(), now.getMonthValue(), now.getDayOfMonth());

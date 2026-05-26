@@ -57,10 +57,10 @@ public class UserController {
     }
 
     /**
-     * Zwraca wszystkie konta mieszkancow widoczne dla administratora.
+     * Returns all resident accounts visible to the administrator.
      *
-     * @param authentication dane aktualnie zalogowanego uzytkownika
-     * @return posortowana lista mieszkancow
+     * @param authentication current user authentication
+     * @return sorted list of residents
      */
     @GetMapping("/residents")
     public ResponseEntity<List<AdminUserResponse>> getResidents(Authentication authentication) {
@@ -77,10 +77,10 @@ public class UserController {
     }
 
     /**
-     * Zwraca wszystkie konta konserwatorow widoczne dla administratora.
+     * Returns all maintainer accounts visible to the administrator.
      *
-     * @param authentication dane aktualnie zalogowanego uzytkownika
-     * @return posortowana lista konserwatorow
+     * @param authentication current user authentication
+     * @return sorted list of maintainers
      */
     @GetMapping("/maintainers")
     public ResponseEntity<List<AdminUserResponse>> getMaintainers(Authentication authentication) {
@@ -97,11 +97,11 @@ public class UserController {
     }
 
     /**
-     * Tworzy konto mieszkanca lub konserwatora.
+     * Creates a resident or maintainer account.
      *
-     * @param authentication dane aktualnie zalogowanego uzytkownika
-     * @param request        dane nowego uzytkownika
-     * @return dane utworzonego uzytkownika
+     * @param authentication current user authentication
+     * @param request new user data
+     * @return created user data
      */
     @PostMapping
     public ResponseEntity<AdminUserResponse> createUser(Authentication authentication,
@@ -139,12 +139,12 @@ public class UserController {
     }
 
     /**
-     * Zmienia stan aktywnosci konta wskazanego uzytkownika.
+     * Changes the active state of the specified user account.
      *
-     * @param authentication dane aktualnie zalogowanego uzytkownika
-     * @param userId         identyfikator docelowego uzytkownika
-     * @param request        docelowy stan aktywnosci
-     * @return dane zaktualizowanego uzytkownika
+     * @param authentication current user authentication
+     * @param userId target user identifier
+     * @param request target active state
+     * @return updated user data
      */
     @PatchMapping("/{userId}/active")
     public ResponseEntity<AdminUserResponse> updateUserActiveState(

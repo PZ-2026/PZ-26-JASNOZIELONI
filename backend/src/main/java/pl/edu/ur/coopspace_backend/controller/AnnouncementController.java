@@ -324,8 +324,8 @@ public class AnnouncementController {
     }
 
     /**
-     * Sprawdza czy uzytkownik jest administratorem.
-     * Jest to uzywane do weryfikacji uprawnien do danych akcji.
+     * Checks whether the current user is an administrator.
+     * This is used to verify permissions for the requested actions.
      */
     private User requireAdmin(Authentication authentication) {
         User currentUser = getCurrentUser(authentication);
@@ -343,7 +343,7 @@ public class AnnouncementController {
     }
 
     /**
-     * Zwraca katalog do przechowywania dokumentów.
+     * Returns the directory used to store documents.
      */
     private Path getDocumentDirectory() {
         return Path.of("uploads", "docs").toAbsolutePath().normalize();
@@ -361,7 +361,7 @@ public class AnnouncementController {
     }
 
     /**
-     * Wyodrębnia rozszerzenie pliku z nazwy original.
+     * Extracts the file extension from the original filename.
      */
     private String extractExtension(String originalFilename) {
         if (originalFilename == null || originalFilename.isBlank()) {

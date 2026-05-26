@@ -18,8 +18,8 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Tylko-do-odczytu API administracyjnego dla slownika budynkow.
- * Zwraca liste budynkow do raportu zgloszen konserwatorskich.
+ * Read-only administrative API for the building dictionary.
+ * Returns the building list used in maintenance issue reports.
  */
 @RestController
 @RequestMapping("/api/buildings")
@@ -41,7 +41,7 @@ public class BuildingController {
     }
 
     /**
-     * Zwraca liste aktywnych budynkow posortowanych po adresie alfabetycznie.
+     * Returns the list of active buildings sorted alphabetically by address.
      *
      * @param authentication current user authentication
      * @return list of active building summaries
