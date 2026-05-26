@@ -109,6 +109,9 @@ Po wykonaniu polecenia dokumentacja jest gotowa i zapisuje się w folderze:
 build/reports/tests/test/index.html
 ```
 
+Jest też opcja wygenerowania dokumentacji JavaDoc z poziomu IDE IntelliJ. Należy przejść do zakładki:
+`Tools -> Generate JavaDoc...`. Jako `visibility level` należy wskazać wartość `protected`.
+
 ## Struktura katalogów backendu
 
 ```
