@@ -6,6 +6,9 @@ import pl.edu.ur.coopspace_backend.entity.AuditLog;
 
 import java.util.List;
 
+/**
+ * Persistence access for audit log entries.
+ */
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, Integer> {
     /**

@@ -29,6 +29,12 @@ public class BuildingController {
     private final BuildingRepository buildingRepository;
     private final UserRepository userRepository;
 
+    /**
+     * Creates a read-only controller for building dictionary endpoints.
+     *
+     * @param buildingRepository building persistence access
+     * @param userRepository user persistence access
+     */
     public BuildingController(BuildingRepository buildingRepository, UserRepository userRepository) {
         this.buildingRepository = buildingRepository;
         this.userRepository = userRepository;
@@ -36,6 +42,9 @@ public class BuildingController {
 
     /**
      * Zwraca liste aktywnych budynkow posortowanych po adresie alfabetycznie.
+     *
+     * @param authentication current user authentication
+     * @return list of active building summaries
      */
     @GetMapping
     public ResponseEntity<List<BuildingSummaryResponse>> getBuildings(Authentication authentication) {

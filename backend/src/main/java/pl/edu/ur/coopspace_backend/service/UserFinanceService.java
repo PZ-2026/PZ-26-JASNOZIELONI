@@ -1,6 +1,5 @@
 package pl.edu.ur.coopspace_backend.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.edu.ur.coopspace_backend.entity.Charge;
@@ -29,11 +28,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Service
-@RequiredArgsConstructor
 /**
  * Provides resident-facing finance operations for charges, payments, and charge item metadata.
  */
+@Service
 public class UserFinanceService {
 
     private final ChargeRepository chargeRepository;
@@ -42,6 +40,27 @@ public class UserFinanceService {
     private final ChargeItemTypeRepository chargeItemTypeRepository;
     private final LocalRepository localRepository;
     private final BuildingRepository buildingRepository;
+
+    /**
+     * Creates a user finance service.
+     *
+     * @param chargeRepository charge persistence access
+     * @param paymentRepository payment persistence access
+     * @param chargeItemRepository charge item persistence access
+     * @param chargeItemTypeRepository charge item type persistence access
+     * @param localRepository local persistence access
+     * @param buildingRepository building persistence access
+     */
+    public UserFinanceService(ChargeRepository chargeRepository, PaymentRepository paymentRepository,
+            ChargeItemRepository chargeItemRepository, ChargeItemTypeRepository chargeItemTypeRepository,
+            LocalRepository localRepository, BuildingRepository buildingRepository) {
+        this.chargeRepository = chargeRepository;
+        this.paymentRepository = paymentRepository;
+        this.chargeItemRepository = chargeItemRepository;
+        this.chargeItemTypeRepository = chargeItemTypeRepository;
+        this.localRepository = localRepository;
+        this.buildingRepository = buildingRepository;
+    }
 
     /**
      * Returns charges assigned to the given local.
@@ -183,6 +202,14 @@ public class UserFinanceService {
         return savedPayment;
     }
 
+    /**
+     * Generates a financial PDF report for the provided resident and period.
+     *
+     * @param user current resident
+     * @param startDate optional report period start date
+     * @param endDate optional report period end date
+     * @return generated PDF content as bytes
+     */
     @Transactional(readOnly = true)
     public byte[] generateFinancialReport(User user, LocalDate startDate, LocalDate endDate) {
         Local local = localRepository.findById(user.getLocalId())

@@ -25,17 +25,15 @@ import pl.edu.ur.coopspace_backend.repository.UserRepository;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Administrative endpoints for user management.
+ *
+ * <p>Allows administrators to list residents and maintainers,
+ * create accounts, and update account activation state.</p>
+ */
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
-/**
- * Endpointy administracyjne do zarzadzania uzytkownikami.
- *
- * <p>
- * Kontroler pozwala administratorowi listowac uzytkownikow, tworzyc konta
- * mieszkancow i konserwatorow oraz zmieniac stan aktywnosci konta.
- * </p>
- */
 public class UserController {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
@@ -44,6 +42,13 @@ public class UserController {
     private final LocalRepository localRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Creates a user administration controller.
+     *
+     * @param userRepository user persistence access
+     * @param localRepository local persistence access
+     * @param passwordEncoder password hashing service
+     */
     public UserController(UserRepository userRepository, LocalRepository localRepository,
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -230,13 +235,32 @@ public class UserController {
                 user.getIsActive());
     }
 
+    /**
+     * Request payload describing the target active state for a user account.
+     */
     public static class ActiveStateRequest {
         private Boolean isActive;
 
+        /**
+         * Creates an empty active-state request.
+         */
+        public ActiveStateRequest() {
+        }
+
+        /**
+         * Returns requested account active state.
+         *
+         * @return requested active flag
+         */
         public Boolean getIsActive() {
             return isActive;
         }
 
+        /**
+         * Sets requested account active state.
+         *
+         * @param isActive requested active flag
+         */
         public void setIsActive(Boolean isActive) {
             this.isActive = isActive;
         }

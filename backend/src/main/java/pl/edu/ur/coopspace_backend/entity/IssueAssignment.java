@@ -12,10 +12,15 @@ import java.time.LocalDateTime;
 @Table(name = "issue_assignment")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class IssueAssignment {
+
+    /**
+     * Creates an empty issue assignment entity.
+     */
+    public IssueAssignment() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

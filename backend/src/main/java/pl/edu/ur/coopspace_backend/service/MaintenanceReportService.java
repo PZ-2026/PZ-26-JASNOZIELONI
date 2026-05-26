@@ -47,6 +47,16 @@ public class MaintenanceReportService {
     private final BuildingRepository buildingRepository;
     private final UserRepository userRepository;
 
+    /**
+     * Creates a maintenance report service.
+     *
+     * @param issueRepository issue persistence access
+     * @param issueCategoryRepository issue category persistence access
+     * @param issueStatusHistoryRepository issue status history persistence access
+     * @param localRepository local persistence access
+     * @param buildingRepository building persistence access
+     * @param userRepository user persistence access
+     */
     public MaintenanceReportService(
             IssueRepository issueRepository,
             IssueCategoryRepository issueCategoryRepository,
@@ -65,6 +75,14 @@ public class MaintenanceReportService {
 
     /**
      * Generuje raport zgloszen konserwatorskich w formacie PDF.
+         *
+         * @param currentUserEmail current user email
+         * @param months optional period length in months
+         * @param status optional issue status filter
+         * @param categoryId optional issue category filter
+         * @param maintainerId optional maintainer filter
+         * @param buildingId optional building filter
+         * @return generated report metadata with file path and file name
      */
     public MaintenanceReportResult generateReport(
             String currentUserEmail,
@@ -278,6 +296,12 @@ public class MaintenanceReportService {
         }
     }
 
+    /**
+     * Result metadata for a generated maintenance report.
+     *
+     * @param filePath generated report path
+     * @param fileName generated report file name
+     */
     public record MaintenanceReportResult(Path filePath, String fileName) {
     }
 }

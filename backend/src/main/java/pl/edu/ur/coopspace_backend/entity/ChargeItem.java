@@ -12,10 +12,15 @@ import java.math.BigDecimal;
 @Table(name = "charge_item")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ChargeItem {
+
+    /**
+     * Creates an empty charge item entity.
+     */
+    public ChargeItem() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

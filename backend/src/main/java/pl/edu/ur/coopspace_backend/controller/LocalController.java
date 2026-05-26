@@ -18,17 +18,23 @@ import org.springframework.http.HttpStatus;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Read-only administrative API for local dictionary data.
+ */
 @RestController
 @RequestMapping("/api/locals")
 @CrossOrigin(origins = "*")
-/**
- * Tylko-do-odczytu API administracyjne dla slownika lokali.
- */
 public class LocalController {
 
     private final LocalRepository localRepository;
     private final UserRepository userRepository;
 
+    /**
+     * Creates a local dictionary controller.
+     *
+     * @param localRepository local persistence access
+     * @param userRepository user persistence access
+     */
     public LocalController(LocalRepository localRepository, UserRepository userRepository) {
         this.localRepository = localRepository;
         this.userRepository = userRepository;

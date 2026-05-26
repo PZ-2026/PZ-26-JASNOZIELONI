@@ -10,6 +10,17 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class CoopspaceBackendApplication {
 
+	/**
+	 * Creates the application bootstrap class.
+	 */
+	public CoopspaceBackendApplication() {
+	}
+
+	/**
+	 * Starts the Spring Boot application.
+	 *
+	 * @param args command-line arguments
+	 */
 	public static void main(String[] args) {
 		SpringApplication.run(CoopspaceBackendApplication.class, args);
 	}

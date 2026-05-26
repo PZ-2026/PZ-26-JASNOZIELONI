@@ -12,10 +12,15 @@ import java.time.LocalDateTime;
 @Table(name = "issue_image")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class IssueImage {
+
+    /**
+     * Creates an empty issue image entity.
+     */
+    public IssueImage() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -10,10 +10,15 @@ import lombok.*;
 @Table(name = "issue_category")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class IssueCategory {
+
+    /**
+     * Creates an empty issue category entity.
+     */
+    public IssueCategory() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

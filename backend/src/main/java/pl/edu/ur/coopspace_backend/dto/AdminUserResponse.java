@@ -2,7 +2,6 @@ package pl.edu.ur.coopspace_backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pl.edu.ur.coopspace_backend.entity.UserRole;
 
@@ -11,9 +10,14 @@ import pl.edu.ur.coopspace_backend.entity.UserRole;
  */
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class AdminUserResponse {
+    /**
+     * Creates an empty administrative user response.
+     */
+    public AdminUserResponse() {
+    }
+
     private Integer id;
     private String firstName;
     private String lastName;

@@ -6,6 +6,9 @@ import pl.edu.ur.coopspace_backend.entity.Document;
 
 import java.util.List;
 
+/**
+ * Persistence access for document records.
+ */
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Integer> {
     /**

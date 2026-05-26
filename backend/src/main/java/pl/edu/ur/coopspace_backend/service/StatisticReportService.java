@@ -19,14 +19,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-@Service
 /**
- * Serwis odpowiedzialny za generowanie raportu statystycznego spoldzielni.
+ * Service responsible for generating cooperative statistic reports.
  *
- * <p>Weryfikuje uprawnienia, pobiera niezbedne dane do raportu lub wylicza te
- * statystyki na podstawie danych z bazy. Nastepnie mapuje dane do formatu
- * wymaganego przez bliblioteke PDF.</p>
+ * <p>Validates permissions, computes report metrics from persisted data,
+ * and maps values to the PDF generation model.</p>
  */
+@Service
 public class StatisticReportService {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
@@ -39,6 +38,18 @@ public class StatisticReportService {
     private final PaymentRepository paymentRepository;
     private final ChargeItemRepository chargeItemRepository;
 
+    /**
+     * Creates a statistic report service.
+     *
+     * @param issueRepository issue persistence access
+     * @param issueStatusHistoryRepository issue status history persistence access
+     * @param localRepository local persistence access
+     * @param buildingRepository building persistence access
+     * @param userRepository user persistence access
+     * @param chargeRepository charge persistence access
+     * @param paymentRepository payment persistence access
+     * @param chargeItemRepository charge item persistence access
+     */
     public StatisticReportService(
             IssueRepository issueRepository,
             IssueStatusHistoryRepository issueStatusHistoryRepository,
@@ -63,14 +74,14 @@ public class StatisticReportService {
      * Generuje raport statystyczny spoldzielni w formacie PDF dla wskazanych parametrow
      * przez uzytkownika. Parametry sa wypisane ponizej.
      *
-     * @param currentUserEmail
-     * @param months
-     * @param includeRevenue
-     * @param includeIssuesCount
-     * @param includeAvgResolutionTime
-     * @param includeResidentsCount
+    * @param currentUserEmail current user email
+    * @param months optional period length in months
+    * @param includeRevenue whether to include revenue metrics
+    * @param includeIssuesCount whether to include issue count metrics
+    * @param includeAvgResolutionTime whether to include average resolution time metrics
+    * @param includeResidentsCount whether to include resident count metrics
      *
-     * @return Zwraca obiekt raportu na podstawie, ktorego powstaje gotowy dokument PDF i jest on wysylany do uzytkownika na frontend.
+    * @return metadata of generated statistic report file
      */
     public StatisticReportResult generateReport(
             String currentUserEmail,
@@ -249,6 +260,8 @@ public class StatisticReportService {
 
     /**
      * Tworzy plik raportu tymczasowo i po wyslaniu jest on usuwany.
+     * @throws ResponseStatusException gdy nie udalo sie przygotowac pliku z raportem
+     * @return sciezka do pliku z raportem
      */
     private Path createReportFile() {
         try {
@@ -269,5 +282,11 @@ public class StatisticReportService {
         return String.format("Raport_Statystyczny_%d%02d%02d.pdf", now.getYear(), now.getMonthValue(), now.getDayOfMonth());
     }
 
+    /**
+     * Result metadata for a generated statistic report.
+     *
+     * @param filePath generated report path
+     * @param fileName generated report file name
+     */
     public record StatisticReportResult(Path filePath, String fileName) {}
 }

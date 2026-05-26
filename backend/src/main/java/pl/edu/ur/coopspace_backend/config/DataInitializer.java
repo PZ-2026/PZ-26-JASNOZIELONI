@@ -13,7 +13,21 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Configuration
 public class DataInitializer {
+
+    /**
+     * Creates a data initializer configuration.
+     */
+    public DataInitializer() {
+    }
     
+    /**
+     * Provides startup seeding logic for reference and sample data.
+     *
+     * @param userRepository user persistence access
+     * @param jdbcTemplate JDBC access helper
+     * @param passwordEncoder password hashing service
+     * @return command line runner executing initial inserts
+     */
     @Bean
     @Transactional
     public CommandLineRunner initializeData(UserRepository userRepository, 

@@ -14,10 +14,15 @@ import java.time.LocalDateTime;
 @Table(name = "payment")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Payment {
+
+    /**
+     * Creates an empty payment entity.
+     */
+    public Payment() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

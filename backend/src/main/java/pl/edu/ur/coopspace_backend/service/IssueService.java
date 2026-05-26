@@ -38,14 +38,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Main business service for issue lifecycle operations.
+ *
+ * <p>Handles issue workflows, assignment rules, category listing,
+ * and issue image management with role-based access checks.</p>
+ */
 @Service
 @Transactional
-/**
- * Glowny serwis logiki biznesowej dla obslugi zgloszen.
- *
- * <p>Obsluguje operacje cyklu zycia zgloszen, workflow przypisan,
- * slownik kategorii oraz operacje na zdjeciach z kontrola uprawnien dla danej roli.</p>
- */
 public class IssueService {
 
     private final IssueRepository issueRepository;
@@ -56,6 +56,17 @@ public class IssueService {
     private final UserRepository userRepository;
     private final IssueCommentRepository issueCommentRepository;
 
+    /**
+     * Creates an issue service.
+     *
+     * @param issueRepository issue persistence access
+     * @param issueCategoryRepository issue category persistence access
+     * @param issueStatusHistoryRepository issue status history persistence access
+     * @param issueAssignmentRepository issue assignment persistence access
+     * @param issueImageRepository issue image persistence access
+     * @param userRepository user persistence access
+     * @param issueCommentRepository issue comment persistence access
+     */
     public IssueService(
             IssueRepository issueRepository,
             IssueCategoryRepository issueCategoryRepository,
@@ -75,7 +86,10 @@ public class IssueService {
     }
 
     /**
-        * Zwraca zgloszenia utworzone przez aktualnego mieszkanca.
+     * Returns issues created by the current user.
+     *
+     * @param currentUserEmail current user email
+     * @return list of user-created issues
      */
     @Transactional(readOnly = true)
     public List<IssueResponse> getMyIssues(String currentUserEmail) {
@@ -88,7 +102,12 @@ public class IssueService {
     }
 
     /**
-        * Zwraca zgloszenia przypisane do aktualnego konserwatora.
+     * Returns issues assigned to the current maintainer.
+     *
+     * @param currentUserEmail current user email
+     * @param status optional status filter
+     * @param localId optional local identifier filter
+     * @return filtered list of assigned issues
      */
     @Transactional(readOnly = true)
     public List<IssueResponse> getAssignedIssues(String currentUserEmail, IssueStatus status, Integer localId) {
@@ -103,7 +122,12 @@ public class IssueService {
     }
 
     /**
-        * Zwraca wszystkie zgloszenia w kontekście administratora z opcjonalnymi filtrami.
+     * Returns all issues for the administrator context with optional filters.
+     *
+     * @param currentUserEmail current user email
+     * @param status optional status filter
+     * @param localId optional local identifier filter
+     * @return filtered list of all issues
      */
     @Transactional(readOnly = true)
     public List<IssueResponse> getAllIssues(String currentUserEmail, IssueStatus status, Integer localId) {
@@ -122,7 +146,11 @@ public class IssueService {
     }
 
     /**
-        * Tworzy nowe zgloszenie dla biezacego kontekstu uzytkownika.
+     * Creates a new issue in the current user context.
+     *
+     * @param currentUserEmail current user email
+     * @param request issue creation payload
+     * @return created issue response
      */
     public IssueResponse createIssue(String currentUserEmail, IssueCreateRequest request) {
         User currentUser = getCurrentUser(currentUserEmail);
@@ -153,7 +181,12 @@ public class IssueService {
     }
 
     /**
-        * Aktualizuje status zgloszenia po sprawdzeniu uprawnien modyfikujacego.
+     * Updates issue status after validating caller permissions.
+     *
+     * @param currentUserEmail current user email
+     * @param issueId issue identifier
+     * @param request status update payload
+     * @return updated issue response
      */
     public IssueResponse updateIssueStatus(String currentUserEmail, Integer issueId, IssueStatusUpdateRequest request) {
         User currentUser = getCurrentUser(currentUserEmail);
@@ -194,7 +227,12 @@ public class IssueService {
     }
 
     /**
-        * Przypisuje zgloszenie do konserwatora i w razie potrzeby przechodzi do statusu IN_PROGRESS.
+     * Assigns an issue to a maintainer and optionally moves it to IN_PROGRESS.
+     *
+     * @param currentUserEmail current user email
+     * @param issueId issue identifier
+     * @param request assignment payload
+     * @return updated issue response
      */
     public IssueResponse assignIssue(String currentUserEmail, Integer issueId, IssueAssignRequest request) {
         User currentUser = getCurrentUser(currentUserEmail);
@@ -233,7 +271,9 @@ public class IssueService {
     }
 
     /**
-        * Zwraca dostepne kategorie zgloszen.
+     * Returns available issue categories.
+     *
+     * @return list of issue categories
      */
     @Transactional(readOnly = true)
     public List<IssueCategoryResponse> getCategories() {
@@ -245,7 +285,11 @@ public class IssueService {
     }
 
     /**
-        * Zwraca metadane zdjec przypisanych do zgloszenia.
+     * Returns metadata for images attached to an issue.
+     *
+     * @param currentUserEmail current user email
+     * @param issueId issue identifier
+     * @return list of image metadata
      */
     @Transactional(readOnly = true)
     public List<IssueImageResponse> getIssueImages(String currentUserEmail, Integer issueId) {
@@ -261,7 +305,12 @@ public class IssueService {
     }
 
     /**
-        * Zapisuje wgrane zdjecie i laczy je ze zgloszeniem.
+     * Stores an uploaded image and links it to an issue.
+     *
+     * @param currentUserEmail current user email
+     * @param issueId issue identifier
+     * @param file uploaded image file
+     * @return saved image metadata
      */
     public IssueImageResponse addIssueImage(String currentUserEmail, Integer issueId, MultipartFile file) {
         User currentUser = getCurrentUser(currentUserEmail);
@@ -298,7 +347,12 @@ public class IssueService {
     }
 
     /**
-        * Zwraca metadane zdjecia po sprawdzeniu uprawnien dostepu do zgloszenia.
+     * Returns issue image metadata after access validation.
+     *
+     * @param currentUserEmail current user email
+     * @param issueId issue identifier
+     * @param imageId image identifier
+     * @return issue image metadata
      */
     public IssueImage getIssueImage(String currentUserEmail, Integer issueId, Integer imageId) {
         User currentUser = getCurrentUser(currentUserEmail);
@@ -316,7 +370,11 @@ public class IssueService {
     }
 
     /**
-        * Usuwa metadane zdjecia i powiazany plik z dysku.
+     * Removes issue image metadata and the associated file from disk.
+     *
+     * @param currentUserEmail current user email
+     * @param issueId issue identifier
+     * @param imageId image identifier
      */
     public void deleteIssueImage(String currentUserEmail, Integer issueId, Integer imageId) {
         IssueImage image = getIssueImage(currentUserEmail, issueId, imageId);
@@ -341,7 +399,12 @@ public class IssueService {
     }
 
     /**
-        * Wyznacza fizyczna sciezke pliku dla zdjecia zgloszenia.
+     * Resolves the physical image file path for an issue image.
+     *
+     * @param currentUserEmail current user email
+     * @param issueId issue identifier
+     * @param imageId image identifier
+     * @return resolved image path
      */
     public Path getIssueImagePath(String currentUserEmail, Integer issueId, Integer imageId) {
         IssueImage image = getIssueImage(currentUserEmail, issueId, imageId);

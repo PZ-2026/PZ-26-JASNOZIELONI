@@ -30,13 +30,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 
-@Service
 /**
- * Serwis odpowiedzialny za przygotowanie danych i generowanie protokolow naprawy.
+ * Service responsible for preparing data and generating repair protocol PDFs.
  *
- * <p>Weryfikuje uprawnienia, waliduje status zgloszenia oraz mapuje dane do formatu
- * wymaganego przez biblioteke PDF.</p>
+ * <p>Validates permissions and issue status, then maps issue data
+ * into the PDF generator input model.</p>
  */
+@Service
 public class RepairProtocolService {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
@@ -49,6 +49,17 @@ public class RepairProtocolService {
     private final BuildingRepository buildingRepository;
     private final UserRepository userRepository;
 
+    /**
+     * Creates a repair protocol service.
+     *
+     * @param issueRepository issue persistence access
+     * @param issueCategoryRepository issue category persistence access
+     * @param issueCommentRepository issue comment persistence access
+     * @param issueStatusHistoryRepository issue status history persistence access
+     * @param localRepository local persistence access
+     * @param buildingRepository building persistence access
+     * @param userRepository user persistence access
+     */
     public RepairProtocolService(
             IssueRepository issueRepository,
             IssueCategoryRepository issueCategoryRepository,
@@ -69,6 +80,10 @@ public class RepairProtocolService {
 
     /**
      * Generuje protokol naprawy w formacie PDF dla wskazanego zgloszenia.
+        *
+        * @param currentUserEmail current user email
+        * @param issueId issue identifier
+        * @return generated protocol metadata with file path and file name
      */
     public RepairProtocolResult generateRepairProtocol(String currentUserEmail, Integer issueId) {
         User currentUser = userRepository.findByEmail(currentUserEmail)
@@ -301,6 +316,12 @@ public class RepairProtocolService {
         }
     }
 
+    /**
+     * Result metadata for a generated repair protocol.
+     *
+     * @param filePath generated file path
+     * @param fileName generated file name
+     */
     public record RepairProtocolResult(Path filePath, String fileName) {
     }
 }

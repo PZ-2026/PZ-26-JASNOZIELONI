@@ -12,10 +12,15 @@ import java.time.LocalDateTime;
 @Table(name = "local", uniqueConstraints = @UniqueConstraint(columnNames = {"building_id", "number"}))
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Local {
+
+    /**
+     * Creates an empty local entity.
+     */
+    public Local() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

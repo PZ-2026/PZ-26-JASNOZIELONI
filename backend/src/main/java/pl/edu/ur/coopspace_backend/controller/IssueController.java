@@ -32,27 +32,38 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * REST API for issue lifecycle operations.
+ *
+ * <p>Provides issue listing, creation, assignment, status transitions,
+ * and image/document-related operations.</p>
+ */
 @RestController
 @RequestMapping("/api/issues")
 @CrossOrigin(origins = "*")
-/**
- * REST API do obslugi cyklu zycia zgloszen.
- *
- * <p>Udostepnia listowanie, tworzenie, zmiane statusu, przypisanie
- * oraz zarzadzanie zdjeciami zgloszen.</p>
- */
 public class IssueController {
 
     private final IssueService issueService;
     private final RepairProtocolService repairProtocolService;
 
+    /**
+     * Creates an issue controller.
+     *
+     * @param issueService issue business service
+     * @param repairProtocolService repair protocol generation service
+     */
     public IssueController(IssueService issueService, RepairProtocolService repairProtocolService) {
         this.issueService = issueService;
         this.repairProtocolService = repairProtocolService;
     }
 
     /**
-        * Zwraca wszystkie zgloszenia widoczne dla administratora z opcjonalnymi filtrami.
+     * Returns all issues visible to the current administrator with optional filters.
+     *
+     * @param authentication current user authentication
+     * @param status optional status filter
+     * @param localId optional local identifier filter
+     * @return filtered list of issues
      */
     @GetMapping
     public ResponseEntity<List<IssueResponse>> getAllIssues(
@@ -64,7 +75,10 @@ public class IssueController {
     }
 
     /**
-        * Zwraca zgloszenia utworzone przez aktualnego uzytkownika.
+     * Returns issues created by the current user.
+     *
+     * @param authentication current user authentication
+     * @return list of issues created by the user
      */
     @GetMapping("/my")
     public ResponseEntity<List<IssueResponse>> getMyIssues(Authentication authentication) {
@@ -72,7 +86,12 @@ public class IssueController {
     }
 
     /**
-        * Zwraca zgloszenia przypisane do aktualnego konserwatora.
+     * Returns issues assigned to the current maintainer.
+     *
+     * @param authentication current user authentication
+     * @param status optional status filter
+     * @param localId optional local identifier filter
+     * @return filtered list of assigned issues
      */
     @GetMapping("/assigned")
     public ResponseEntity<List<IssueResponse>> getAssignedIssues(
@@ -84,7 +103,11 @@ public class IssueController {
     }
 
     /**
-     * Tworzy nowe zgloszenie.
+        * Creates a new issue.
+        *
+        * @param authentication current user authentication
+        * @param request issue creation payload
+        * @return created issue
      */
     @PostMapping
     public ResponseEntity<IssueResponse> createIssue(
@@ -95,7 +118,11 @@ public class IssueController {
     }
 
     /**
-        * Zwraca metadane wszystkich zdjec przypisanych do wskazanego zgloszenia.
+     * Returns metadata of all images assigned to the specified issue.
+     *
+     * @param authentication current user authentication
+     * @param issueId issue identifier
+     * @return list of issue image metadata
      */
     @GetMapping("/{issueId}/images")
     public ResponseEntity<List<IssueImageResponse>> getIssueImages(
@@ -106,7 +133,12 @@ public class IssueController {
     }
 
     /**
-        * Wgrywa pojedynczy plik obrazu i przypina go do istniejacego zgloszenia.
+     * Uploads a single image and attaches it to an existing issue.
+     *
+     * @param authentication current user authentication
+     * @param issueId issue identifier
+     * @param file uploaded image file
+     * @return metadata of the stored image
      */
     @PostMapping(value = "/{issueId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<IssueImageResponse> addIssueImage(
@@ -118,7 +150,13 @@ public class IssueController {
     }
 
     /**
-        * Zwraca binarna zawartosc obrazu dla konkretnego zdjecia zgloszenia.
+     * Returns the binary content of a specific issue image.
+     *
+     * @param authentication current user authentication
+     * @param issueId issue identifier
+     * @param imageId image identifier
+     * @return image resource response
+     * @throws Exception when content type detection fails
      */
     @GetMapping("/{issueId}/images/{imageId}")
     public ResponseEntity<Resource> getIssueImage(
@@ -144,7 +182,12 @@ public class IssueController {
     }
 
     /**
-        * Usuwa zalacznik obrazu ze zgloszenia.
+     * Removes an image attachment from an issue.
+     *
+     * @param authentication current user authentication
+     * @param issueId issue identifier
+     * @param imageId image identifier
+     * @return empty response on successful deletion
      */
     @DeleteMapping("/{issueId}/images/{imageId}")
     public ResponseEntity<Void> deleteIssueImage(
@@ -157,7 +200,12 @@ public class IssueController {
     }
 
     /**
-        * Zmienia status zgloszenia.
+     * Updates an issue status.
+     *
+     * @param authentication current user authentication
+     * @param issueId issue identifier
+     * @param request status update payload
+     * @return updated issue
      */
     @PatchMapping("/{issueId}/status")
     public ResponseEntity<IssueResponse> updateIssueStatus(
@@ -169,7 +217,12 @@ public class IssueController {
     }
 
     /**
-        * Przypisuje zgloszenie do konserwatora.
+     * Assigns an issue to a maintainer.
+     *
+     * @param authentication current user authentication
+     * @param issueId issue identifier
+     * @param request assignment payload
+     * @return updated issue
      */
     @PatchMapping("/{issueId}/assignee")
     public ResponseEntity<IssueResponse> assignIssue(
@@ -181,7 +234,11 @@ public class IssueController {
     }
 
     /**
-    * Generuje protokol naprawy w formacie PDF.
+    * Generates a repair protocol in PDF format.
+    *
+    * @param authentication current user authentication
+    * @param issueId issue identifier
+    * @return generated PDF file as a downloadable resource
      */
     @GetMapping(value = "/{issueId}/repair-protocol", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<Resource> downloadRepairProtocol(
@@ -199,7 +256,9 @@ public class IssueController {
     }
 
     /**
-        * Zwraca dostepne kategorie zgloszen.
+     * Returns available issue categories.
+     *
+     * @return list of issue categories
      */
     @GetMapping("/categories")
     public ResponseEntity<List<IssueCategoryResponse>> getIssueCategories() {

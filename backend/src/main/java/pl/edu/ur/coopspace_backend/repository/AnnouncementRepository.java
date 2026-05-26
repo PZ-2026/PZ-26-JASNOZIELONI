@@ -6,6 +6,9 @@ import pl.edu.ur.coopspace_backend.entity.Announcement;
 
 import java.util.List;
 
+/**
+ * Persistence access for announcement records.
+ */
 @Repository
 public interface AnnouncementRepository extends JpaRepository<Announcement, Integer> {
     /**

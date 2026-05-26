@@ -39,16 +39,15 @@ public interface ChargeRepository extends JpaRepository<Charge, Integer> {
      */
     List<Charge> findByStatus(ChargeStatus status);
     
-    @Query("SELECT c FROM Charge c WHERE c.periodEnd IS NULL OR c.periodEnd >= :currentDate")
     /**
      * Finds charges that are currently active (period not ended).
      *
      * @param currentDate cutoff date
      * @return active charges
      */
+    @Query("SELECT c FROM Charge c WHERE c.periodEnd IS NULL OR c.periodEnd >= :currentDate")
     List<Charge> findActiveCharges(@Param("currentDate") LocalDate currentDate);
 
-    @Query("SELECT c FROM Charge c WHERE c.periodStart IS NOT NULL AND c.periodStart <= :endDate AND (c.periodEnd IS NULL OR c.periodEnd >= :startDate)")
     /**
      * Finds charges that overlap the given period.
      *
@@ -56,5 +55,6 @@ public interface ChargeRepository extends JpaRepository<Charge, Integer> {
      * @param endDate period end cutoff
      * @return charges overlapping the period
      */
+    @Query("SELECT c FROM Charge c WHERE c.periodStart IS NOT NULL AND c.periodStart <= :endDate AND (c.periodEnd IS NULL OR c.periodEnd >= :startDate)")
     List<Charge> findChargesOverlappingPeriod(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

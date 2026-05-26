@@ -10,10 +10,15 @@ import lombok.*;
 @Table(name = "charge_item_type")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ChargeItemType {
+
+    /**
+     * Creates an empty charge item type entity.
+     */
+    public ChargeItemType() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

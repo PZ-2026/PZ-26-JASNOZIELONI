@@ -1,6 +1,5 @@
 package pl.edu.ur.coopspace_backend.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.edu.ur.coopspace_backend.dto.UpdateRatesRequest;
@@ -11,10 +10,18 @@ import pl.edu.ur.coopspace_backend.service.PaymentService;
  */
 @RestController
 @RequestMapping("/api/admin/payments")
-@RequiredArgsConstructor
 public class PaymentController {
 
     private final PaymentService paymentService;
+
+    /**
+     * Creates a payment administration controller.
+     *
+     * @param paymentService payment business service
+     */
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
 
     /**
      * Updates payment rates used by the application (admin only).

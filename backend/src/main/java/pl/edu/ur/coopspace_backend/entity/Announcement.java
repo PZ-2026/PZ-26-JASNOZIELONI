@@ -12,10 +12,15 @@ import java.time.LocalDateTime;
 @Table(name = "announcement")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Announcement {
+
+    /**
+     * Creates an empty announcement entity.
+     */
+    public Announcement() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

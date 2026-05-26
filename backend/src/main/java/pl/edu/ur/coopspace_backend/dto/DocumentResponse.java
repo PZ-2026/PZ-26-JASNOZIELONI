@@ -3,7 +3,6 @@ package pl.edu.ur.coopspace_backend.dto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
@@ -11,9 +10,14 @@ import java.time.LocalDateTime;
  */
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class DocumentResponse {
+    /**
+     * Creates an empty document response.
+     */
+    public DocumentResponse() {
+    }
+
     private Integer id;
     private String title;
     private String filePath;
