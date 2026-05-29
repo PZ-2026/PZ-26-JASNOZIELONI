@@ -112,7 +112,7 @@ fun AdminPaymentSettingsScreen(
 
         // Pola formularza
         PaymentInputField(
-            label = "Czynsz",
+            label = "Czynsz za miesiąc:",
             value = rentValue,
             onValueChange = { rentValue = it },
             onClear = { rentValue = "" }
@@ -121,7 +121,7 @@ fun AdminPaymentSettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         PaymentInputField(
-            label = "Stawka za wode",
+            label = "Stawka za wode (m3):",
             value = waterValue,
             onValueChange = { waterValue = it },
             onClear = { waterValue = "" }
@@ -130,7 +130,7 @@ fun AdminPaymentSettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         PaymentInputField(
-            label = "Stawka za prąd",
+            label = "Stawka za prąd (kWh):",
             value = electricityValue,
             onValueChange = { electricityValue = it },
             onClear = { electricityValue = "" }
@@ -139,7 +139,7 @@ fun AdminPaymentSettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         PaymentInputField(
-            label = "Stawka za gaz",
+            label = "Stawka za gaz (m3):",
             value = gasValue,
             onValueChange = { gasValue = it },
             onClear = { gasValue = "" }

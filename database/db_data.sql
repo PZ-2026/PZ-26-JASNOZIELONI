@@ -121,7 +121,8 @@ VALUES
 (4, 1, 4, 'm3', 10, 40),
 (5, 3, 1, 'month', 450, 450),
 (5, 2, 80, 'kWh', 1.5, 120),
-(5, 1, 2, 'm3', 10, 20);
+(5, 1, 2, 'm3', 10, 20),
+(5, 4, 10, 'm3', 22, 220);
 
 -- PAYMENTS
 INSERT INTO payment (charge_id, amount, payment_date)

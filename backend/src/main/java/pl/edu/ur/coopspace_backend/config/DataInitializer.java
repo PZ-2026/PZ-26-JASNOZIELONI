@@ -374,6 +374,10 @@ public class DataInitializer {
                 "INSERT INTO charge_item (charge_id, type_id, quantity, unit, unit_price, total) VALUES (?, ?, ?, ?, ?, ?)",
                 5, 1, 2, "m3", 10, 20
             );
+            jdbcTemplate.update(
+                    "INSERT INTO charge_item (charge_id, type_id, quantity, unit, unit_price, total) VALUES (?, ?, ?, ?, ?, ?)",
+                    5, 4, 10, "m3", 22, 220
+            );
             
             // PAYMENTS
             jdbcTemplate.update(
