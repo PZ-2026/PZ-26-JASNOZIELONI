@@ -16,10 +16,15 @@ import java.time.LocalDateTime;
 @Table(name = "charge")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Charge {
+
+    /**
+     * Creates an empty charge entity.
+     */
+    public Charge() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -18,28 +18,34 @@ import org.springframework.http.HttpStatus;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Read-only administrative API for local dictionary data.
+ */
 @RestController
 @RequestMapping("/api/locals")
 @CrossOrigin(origins = "*")
-/**
- * Tylko-do-odczytu API administracyjne dla slownika lokali.
- */
 public class LocalController {
 
     private final LocalRepository localRepository;
     private final UserRepository userRepository;
 
+    /**
+     * Creates a local dictionary controller.
+     *
+     * @param localRepository local persistence access
+     * @param userRepository user persistence access
+     */
     public LocalController(LocalRepository localRepository, UserRepository userRepository) {
         this.localRepository = localRepository;
         this.userRepository = userRepository;
     }
 
-    /**
-        * Zwraca aktywne lokale posortowane po budynku, numerze lokalu i klatce.
-     *
-        * @param authentication dane aktualnie zalogowanego uzytkownika
-        * @return lista lokali do wyboru w interfejsie
-     */
+     /**
+      * Returns active units sorted by building, unit number, and staircase.
+      *
+      * @param authentication current user authentication
+      * @return list of units available for selection in the interface
+      */
     @GetMapping
     public ResponseEntity<List<LocalSummaryResponse>> getLocals(Authentication authentication) {
         requireAdmin(authentication);

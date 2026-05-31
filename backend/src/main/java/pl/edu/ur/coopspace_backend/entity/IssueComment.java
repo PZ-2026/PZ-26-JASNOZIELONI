@@ -12,10 +12,15 @@ import java.time.LocalDateTime;
 @Table(name = "issue_comment")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class IssueComment {
+
+    /**
+     * Creates an empty issue comment entity.
+     */
+    public IssueComment() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

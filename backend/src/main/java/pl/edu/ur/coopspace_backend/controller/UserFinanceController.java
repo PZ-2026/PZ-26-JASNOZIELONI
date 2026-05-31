@@ -1,6 +1,5 @@
 package pl.edu.ur.coopspace_backend.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,17 +19,27 @@ import pl.edu.ur.coopspace_backend.service.UserFinanceService;
 import java.time.LocalDate;
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/user/finances")
-@CrossOrigin(origins = "*")
-@RequiredArgsConstructor
 /**
  * Exposes resident-only finance endpoints for charges, payments, and charge item data.
  */
+@RestController
+@RequestMapping("/api/user/finances")
+@CrossOrigin(origins = "*")
 public class UserFinanceController {
 
     private final UserFinanceService userFinanceService;
     private final UserRepository userRepository;
+
+    /**
+     * Creates a resident finance controller.
+     *
+     * @param userFinanceService resident finance service
+     * @param userRepository user persistence access
+     */
+    public UserFinanceController(UserFinanceService userFinanceService, UserRepository userRepository) {
+        this.userFinanceService = userFinanceService;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Returns charges visible to the authenticated resident.
@@ -97,6 +106,8 @@ public class UserFinanceController {
      * Generates and returns a financial report for the authenticated resident.
      *
      * @param authentication current authentication
+        * @param startDate optional report period start date
+        * @param endDate optional report period end date
      * @return PDF report file
      */
     @GetMapping("/report")

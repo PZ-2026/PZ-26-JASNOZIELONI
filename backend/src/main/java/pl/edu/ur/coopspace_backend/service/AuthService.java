@@ -25,6 +25,13 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     
+    /**
+     * Creates an authentication service.
+     *
+     * @param userRepository user persistence access
+     * @param passwordEncoder password hashing service
+     * @param jwtService JWT token service
+     */
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;

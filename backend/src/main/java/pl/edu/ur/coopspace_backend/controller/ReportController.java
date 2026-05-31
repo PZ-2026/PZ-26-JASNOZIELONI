@@ -26,6 +26,12 @@ public class ReportController {
         private final MaintenanceReportService maintenanceReportService;
         private final StatisticReportService statisticReportService;
 
+        /**
+         * Creates a report controller.
+         *
+         * @param maintenanceReportService maintenance report service
+         * @param statisticReportService statistic report service
+         */
         public ReportController(MaintenanceReportService maintenanceReportService,
                         StatisticReportService statisticReportService) {
                 this.maintenanceReportService = maintenanceReportService;
@@ -33,7 +39,15 @@ public class ReportController {
         }
 
         /**
-         * Generuje raport zgloszen konserwatorskich w formacie PDF.
+         * Generates a maintenance issue report in PDF format.
+         *
+         * @param authentication current user authentication
+         * @param months optional period length in months
+         * @param status optional issue status filter
+         * @param categoryId optional category filter
+         * @param maintainerId optional maintainer filter
+         * @param buildingId optional building filter
+         * @return generated maintenance report as downloadable PDF resource
          */
         @GetMapping(value = "/maintenance", produces = MediaType.APPLICATION_PDF_VALUE)
         public ResponseEntity<Resource> downloadMaintenanceReport(
@@ -60,7 +74,15 @@ public class ReportController {
         }
 
         /**
-         * Generuje raport statystyczny spoldzielni w formacie PDF.
+         * Generates a cooperative statistic report in PDF format.
+         *
+         * @param authentication current user authentication
+         * @param months optional period length in months
+         * @param includeRevenue whether to include revenue section
+         * @param includeIssuesCount whether to include issue count section
+         * @param includeAvgResolutionTime whether to include average resolution time section
+         * @param includeResidentsCount whether to include resident count section
+         * @return generated statistic report as downloadable PDF resource
          */
         @GetMapping(value = "/statistic", produces = MediaType.APPLICATION_PDF_VALUE)
         public ResponseEntity<Resource> downloadStatisticReport(

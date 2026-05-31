@@ -134,6 +134,7 @@ class UserFinanceServiceTest {
     @DisplayName("makePayment bez chargeId powinno wybrać najstarszą nieopłaconą opłatę")
     void testMakePaymentSelectsFirstUnpaidCharge() {
         when(chargeRepository.findByLocalId(5)).thenReturn(new ArrayList<>(List.of(secondCharge, firstCharge)));
+        when(chargeRepository.findById(11)).thenReturn(Optional.of(secondCharge));
         when(paymentRepository.findByChargeId(10)).thenReturn(List.of(
                 Payment.builder().id(1).chargeId(10).amount(new BigDecimal("100.00")).build()
         ));

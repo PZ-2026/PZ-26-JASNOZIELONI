@@ -90,6 +90,28 @@ Linux/macOS:
 ./grandlew test --tests "com.example.MyTest"
 ```
 
+## Generowanie dokumentacji JavaDoc
+
+Generowanie dokumentacji JavaDoc można uzyskać wywołując w katalogu głównym projektu polecenie:
+
+Dla Windows:
+```bash
+.\gradlew.bat javadoc
+```
+
+Linux/macOS:
+```bash
+./gradlew javadoc
+```
+
+Po wykonaniu polecenia dokumentacja jest gotowa i zapisuje się w folderze:
+```bash
+build/docs/javadoc/index.html
+```
+
+Jest też opcja wygenerowania dokumentacji JavaDoc z poziomu IDE IntelliJ. Należy przejść do zakładki:
+`Tools -> Generate JavaDoc...`. Jako `visibility level` należy wskazać wartość `protected`.
+
 ## Struktura katalogów backendu
 
 ```

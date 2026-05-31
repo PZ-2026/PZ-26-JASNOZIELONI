@@ -14,10 +14,15 @@ import java.time.LocalDateTime;
 @Table(name = "\"user\"")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class User {
+
+    /**
+     * Creates an empty user entity.
+     */
+    public User() {
+    }
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,12 +64,18 @@ public class User {
     @Column
     private LocalDateTime deletedAt;
     
+    /**
+     * Initializes creation and update timestamps before first persistence.
+     */
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
     
+    /**
+     * Updates the modification timestamp before entity update.
+     */
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();

@@ -14,10 +14,15 @@ import java.time.LocalDateTime;
 @Table(name = "issue_status_history")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class IssueStatusHistory {
+
+    /**
+     * Creates an empty issue status history entry.
+     */
+    public IssueStatusHistory() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

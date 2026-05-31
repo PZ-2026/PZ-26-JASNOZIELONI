@@ -12,10 +12,15 @@ import java.time.LocalDateTime;
 @Table(name = "building")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Building {
+
+    /**
+     * Creates an empty building entity.
+     */
+    public Building() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

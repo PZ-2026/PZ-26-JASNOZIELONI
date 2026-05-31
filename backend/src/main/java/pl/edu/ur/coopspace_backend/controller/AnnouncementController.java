@@ -40,6 +40,13 @@ public class AnnouncementController {
     private final UserRepository userRepository;
     private final DocumentRepository documentRepository;
 
+    /**
+     * Creates a controller for announcement and document operations.
+     *
+     * @param announcementRepository announcement persistence access
+     * @param userRepository user persistence access
+     * @param documentRepository document persistence access
+     */
     public AnnouncementController(AnnouncementRepository announcementRepository, UserRepository userRepository, DocumentRepository documentRepository) {
         this.announcementRepository = announcementRepository;
         this.userRepository = userRepository;
@@ -87,6 +94,14 @@ public class AnnouncementController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Downloads a stored document file.
+     *
+     * @param authentication current user authentication
+     * @param id document identifier
+     * @return document file as a downloadable resource
+     * @throws IOException when content type detection fails
+     */
     @GetMapping("/documents/{id}/download")
     public ResponseEntity<Resource> downloadDocument(
             Authentication authentication,
@@ -114,13 +129,13 @@ public class AnnouncementController {
                 .body(resource);
     }
 
-        /**
-         * Deletes a stored document. Administrator-only endpoint.
-         *
-         * @param authentication current user authentication
-         * @param id document identifier
-         * @return no content on success
-         */
+    /**
+     * Deletes a stored document. Administrator-only endpoint.
+     *
+     * @param authentication current user authentication
+     * @param id document identifier
+     * @return no content on success
+     */
     @DeleteMapping("/documents/{id}")
     public ResponseEntity<Void> deleteDocument(
             Authentication authentication,
@@ -215,6 +230,13 @@ public class AnnouncementController {
         return ResponseEntity.noContent().build();
     }
 
+        /**
+         * Creates a controller for announcement and document operations.
+         *
+         * @param announcementRepository announcement persistence access
+         * @param userRepository user persistence access
+         * @param documentRepository document persistence access
+         */
     /**
      * Lists stored document metadata for authenticated users.
      *
@@ -289,13 +311,21 @@ public class AnnouncementController {
                 .uploadedBy(savedDocument.getUploadedBy())
                 .createdAt(savedDocument.getCreatedAt())
                 .build();
+        /**
+         * Downloads a stored document file.
+         *
+         * @param authentication current user authentication
+         * @param id document identifier
+         * @return document file as a downloadable resource
+         * @throws IOException when content type detection fails
+         */
 
         return ResponseEntity.ok(response);
     }
 
     /**
-     * Sprawdza czy uzytkownik jest administratorem.
-     * Jest to uzywane do weryfikacji uprawnien do danych akcji.
+     * Checks whether the current user is an administrator.
+     * This is used to verify permissions for the requested actions.
      */
     private User requireAdmin(Authentication authentication) {
         User currentUser = getCurrentUser(authentication);
@@ -313,7 +343,7 @@ public class AnnouncementController {
     }
 
     /**
-     * Zwraca katalog do przechowywania dokumentów.
+     * Returns the directory used to store documents.
      */
     private Path getDocumentDirectory() {
         return Path.of("uploads", "docs").toAbsolutePath().normalize();
@@ -331,7 +361,7 @@ public class AnnouncementController {
     }
 
     /**
-     * Wyodrębnia rozszerzenie pliku z nazwy original.
+     * Extracts the file extension from the original filename.
      */
     private String extractExtension(String originalFilename) {
         if (originalFilename == null || originalFilename.isBlank()) {

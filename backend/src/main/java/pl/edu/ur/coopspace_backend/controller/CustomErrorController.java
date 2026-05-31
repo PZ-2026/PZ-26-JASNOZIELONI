@@ -14,13 +14,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class CustomErrorController implements ErrorController {
 
-    @GetMapping("/error")
+    /**
+     * Creates a custom error controller.
+     */
+    public CustomErrorController() {
+    }
+
     /**
      * Generic error mapping endpoint used by the servlet container.
      *
      * @param request the current HTTP servlet request
      * @return a simple text response containing the HTTP status and reason
      */
+    @GetMapping("/error")
     public ResponseEntity<String> handleError(HttpServletRequest request) {
         Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         if (status != null) {

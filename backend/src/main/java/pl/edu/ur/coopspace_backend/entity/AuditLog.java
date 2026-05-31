@@ -12,10 +12,15 @@ import java.time.LocalDateTime;
 @Table(name = "audit_log")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class AuditLog {
+
+    /**
+     * Creates an empty audit log entity.
+     */
+    public AuditLog() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

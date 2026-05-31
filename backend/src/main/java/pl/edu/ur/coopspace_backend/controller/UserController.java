@@ -25,17 +25,15 @@ import pl.edu.ur.coopspace_backend.repository.UserRepository;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Administrative endpoints for user management.
+ *
+ * <p>Allows administrators to list residents and maintainers,
+ * create accounts, and update account activation state.</p>
+ */
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
-/**
- * Endpointy administracyjne do zarzadzania uzytkownikami.
- *
- * <p>
- * Kontroler pozwala administratorowi listowac uzytkownikow, tworzyc konta
- * mieszkancow i konserwatorow oraz zmieniac stan aktywnosci konta.
- * </p>
- */
 public class UserController {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
@@ -44,6 +42,13 @@ public class UserController {
     private final LocalRepository localRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Creates a user administration controller.
+     *
+     * @param userRepository user persistence access
+     * @param localRepository local persistence access
+     * @param passwordEncoder password hashing service
+     */
     public UserController(UserRepository userRepository, LocalRepository localRepository,
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -52,10 +57,10 @@ public class UserController {
     }
 
     /**
-     * Zwraca wszystkie konta mieszkancow widoczne dla administratora.
+     * Returns all resident accounts visible to the administrator.
      *
-     * @param authentication dane aktualnie zalogowanego uzytkownika
-     * @return posortowana lista mieszkancow
+     * @param authentication current user authentication
+     * @return sorted list of residents
      */
     @GetMapping("/residents")
     public ResponseEntity<List<AdminUserResponse>> getResidents(Authentication authentication) {
@@ -72,10 +77,10 @@ public class UserController {
     }
 
     /**
-     * Zwraca wszystkie konta konserwatorow widoczne dla administratora.
+     * Returns all maintainer accounts visible to the administrator.
      *
-     * @param authentication dane aktualnie zalogowanego uzytkownika
-     * @return posortowana lista konserwatorow
+     * @param authentication current user authentication
+     * @return sorted list of maintainers
      */
     @GetMapping("/maintainers")
     public ResponseEntity<List<AdminUserResponse>> getMaintainers(Authentication authentication) {
@@ -92,11 +97,11 @@ public class UserController {
     }
 
     /**
-     * Tworzy konto mieszkanca lub konserwatora.
+     * Creates a resident or maintainer account.
      *
-     * @param authentication dane aktualnie zalogowanego uzytkownika
-     * @param request        dane nowego uzytkownika
-     * @return dane utworzonego uzytkownika
+     * @param authentication current user authentication
+     * @param request new user data
+     * @return created user data
      */
     @PostMapping
     public ResponseEntity<AdminUserResponse> createUser(Authentication authentication,
@@ -134,12 +139,12 @@ public class UserController {
     }
 
     /**
-     * Zmienia stan aktywnosci konta wskazanego uzytkownika.
+     * Changes the active state of the specified user account.
      *
-     * @param authentication dane aktualnie zalogowanego uzytkownika
-     * @param userId         identyfikator docelowego uzytkownika
-     * @param request        docelowy stan aktywnosci
-     * @return dane zaktualizowanego uzytkownika
+     * @param authentication current user authentication
+     * @param userId target user identifier
+     * @param request target active state
+     * @return updated user data
      */
     @PatchMapping("/{userId}/active")
     public ResponseEntity<AdminUserResponse> updateUserActiveState(
@@ -230,13 +235,32 @@ public class UserController {
                 user.getIsActive());
     }
 
+    /**
+     * Request payload describing the target active state for a user account.
+     */
     public static class ActiveStateRequest {
         private Boolean isActive;
 
+        /**
+         * Creates an empty active-state request.
+         */
+        public ActiveStateRequest() {
+        }
+
+        /**
+         * Returns requested account active state.
+         *
+         * @return requested active flag
+         */
         public Boolean getIsActive() {
             return isActive;
         }
 
+        /**
+         * Sets requested account active state.
+         *
+         * @param isActive requested active flag
+         */
         public void setIsActive(Boolean isActive) {
             this.isActive = isActive;
         }

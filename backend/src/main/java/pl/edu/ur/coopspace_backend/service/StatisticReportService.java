@@ -19,14 +19,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-@Service
 /**
- * Serwis odpowiedzialny za generowanie raportu statystycznego spoldzielni.
+ * Service responsible for generating cooperative statistic reports.
  *
- * <p>Weryfikuje uprawnienia, pobiera niezbedne dane do raportu lub wylicza te
- * statystyki na podstawie danych z bazy. Nastepnie mapuje dane do formatu
- * wymaganego przez bliblioteke PDF.</p>
+ * <p>Validates permissions, computes report metrics from persisted data,
+ * and maps values to the PDF generation model.</p>
  */
+@Service
 public class StatisticReportService {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
@@ -39,6 +38,18 @@ public class StatisticReportService {
     private final PaymentRepository paymentRepository;
     private final ChargeItemRepository chargeItemRepository;
 
+    /**
+     * Creates a statistic report service.
+     *
+     * @param issueRepository issue persistence access
+     * @param issueStatusHistoryRepository issue status history persistence access
+     * @param localRepository local persistence access
+     * @param buildingRepository building persistence access
+     * @param userRepository user persistence access
+     * @param chargeRepository charge persistence access
+     * @param paymentRepository payment persistence access
+     * @param chargeItemRepository charge item persistence access
+     */
     public StatisticReportService(
             IssueRepository issueRepository,
             IssueStatusHistoryRepository issueStatusHistoryRepository,
@@ -60,17 +71,16 @@ public class StatisticReportService {
     }
 
     /**
-     * Generuje raport statystyczny spoldzielni w formacie PDF dla wskazanych parametrow
-     * przez uzytkownika. Parametry sa wypisane ponizej.
+     * Generates a cooperative statistic report in PDF format for the parameters provided
+     * by the user.
      *
-     * @param currentUserEmail
-     * @param months
-     * @param includeRevenue
-     * @param includeIssuesCount
-     * @param includeAvgResolutionTime
-     * @param includeResidentsCount
-     *
-     * @return Zwraca obiekt raportu na podstawie, ktorego powstaje gotowy dokument PDF i jest on wysylany do uzytkownika na frontend.
+     * @param currentUserEmail current user email
+     * @param months optional period length in months
+     * @param includeRevenue whether to include revenue metrics
+     * @param includeIssuesCount whether to include issue count metrics
+     * @param includeAvgResolutionTime whether to include average resolution time metrics
+     * @param includeResidentsCount whether to include resident count metrics
+     * @return metadata of the generated statistic report file
      */
     public StatisticReportResult generateReport(
             String currentUserEmail,
@@ -248,7 +258,10 @@ public class StatisticReportService {
     }
 
     /**
-     * Tworzy plik raportu tymczasowo i po wyslaniu jest on usuwany.
+     * Creates a temporary report file and deletes it after the response is sent.
+     *
+     * @return path to the report file
+     * @throws ResponseStatusException when the report file cannot be prepared
      */
     private Path createReportFile() {
         try {
@@ -261,13 +274,20 @@ public class StatisticReportService {
     }
 
     /**
-     * Funkcja do wygenerowania nazwy pliku dla raportu statystycznego spoldzielni.
-     * @param now
-     * @return nazwa pliku dla raportu statystycznego spoldzielni
+     * Builds the filename for the cooperative statistic report.
+     *
+     * @param now current date and time
+     * @return report file name
      */
     private String buildFileName(LocalDateTime now) {
         return String.format("Raport_Statystyczny_%d%02d%02d.pdf", now.getYear(), now.getMonthValue(), now.getDayOfMonth());
     }
 
+    /**
+     * Result metadata for a generated statistic report.
+     *
+     * @param filePath generated report path
+     * @param fileName generated report file name
+     */
     public record StatisticReportResult(Path filePath, String fileName) {}
 }

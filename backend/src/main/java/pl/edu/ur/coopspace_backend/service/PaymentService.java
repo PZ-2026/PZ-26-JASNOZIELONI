@@ -1,6 +1,5 @@
 package pl.edu.ur.coopspace_backend.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.edu.ur.coopspace_backend.dto.UpdateRatesRequest;
@@ -18,12 +17,25 @@ import java.util.List;
  * Contains business logic for payment charge rates and their history.
  */
 @Service
-@RequiredArgsConstructor
 public class PaymentService {
 
     private final ChargeRepository chargeRepository;
     private final ChargeItemRepository chargeItemRepository;
     private final ChargeItemTypeRepository chargeItemTypeRepository;
+
+    /**
+     * Creates a payment service.
+     *
+     * @param chargeRepository charge persistence access
+     * @param chargeItemRepository charge item persistence access
+     * @param chargeItemTypeRepository charge item type persistence access
+     */
+    public PaymentService(ChargeRepository chargeRepository, ChargeItemRepository chargeItemRepository,
+            ChargeItemTypeRepository chargeItemTypeRepository) {
+        this.chargeRepository = chargeRepository;
+        this.chargeItemRepository = chargeItemRepository;
+        this.chargeItemTypeRepository = chargeItemTypeRepository;
+    }
 
     /**
      * Updates active charge rates based on the provided payload.

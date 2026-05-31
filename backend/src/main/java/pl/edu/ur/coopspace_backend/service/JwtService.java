@@ -16,6 +16,13 @@ import java.util.function.Function;
  */
 @Service
 public class JwtService {
+
+    /**
+     * Creates a JWT service.
+     */
+    public JwtService() {
+    }
+
     @Value("${application.security.jwt.secret-key}") // odczyt secret key z pliku konfigracyjnego application.properties
     private String SECRET_KEY;
 

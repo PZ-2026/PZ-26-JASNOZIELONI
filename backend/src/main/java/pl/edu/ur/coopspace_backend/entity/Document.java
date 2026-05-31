@@ -12,10 +12,15 @@ import java.time.LocalDateTime;
 @Table(name = "document")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Document {
+
+    /**
+     * Creates an empty document entity.
+     */
+    public Document() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
