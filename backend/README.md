@@ -106,7 +106,7 @@ Linux/macOS:
 
 Po wykonaniu polecenia dokumentacja jest gotowa i zapisuje się w folderze:
 ```bash
-build/reports/tests/test/index.html
+build/docs/javadoc/index.html
 ```
 
 Jest też opcja wygenerowania dokumentacji JavaDoc z poziomu IDE IntelliJ. Należy przejść do zakładki:
